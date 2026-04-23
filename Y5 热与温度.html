@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sains SJKC Tahun 5: 热与温度 Heat & Temperature</title>
+    <style>
+        /* High Contrast & Mobile Friendly CSS */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #1a1a1a;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .hidden {
+            display: none !important;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #0056b3;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        #timer {
+            color: #d32f2f;
+        }
+        .question-box {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .question-emoji {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.1rem;
+            color: #212529;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #e2e6ea;
+            border-color: #adb5bd;
+        }
+        .option-btn.correct {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+            color: #155724 !important;
+            font-weight: bold;
+        }
+        .option-btn.wrong {
+            background-color: #f8d7da !important;
+            border-color: #dc3545 !important;
+            color: #721c24 !important;
+            font-weight: bold;
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        #explanation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            font-size: 1.1rem;
+            color: #856404;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .action-btn {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            text-align: center;
+        }
+        .action-btn:hover {
+            background-color: #004494;
+        }
+        .action-btn.secondary {
+            background-color: #6c757d;
+        }
+        .action-btn.secondary:hover {
+            background-color: #5a6268;
+        }
+        #result-screen {
+            text-align: center;
+        }
+        .grade-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #0056b3;
+            margin: 10px 0;
+        }
+        .score-display {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 1.3rem;
+            color: #28a745;
+            font-weight: bold;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+        .form-link {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>🌡️ 科学问答游戏 <br> Science Quiz</h1>
+        <h2>热与温度 <br> Heat and Temperature</h2>
+        <p style="font-size: 1.2rem; text-align: center;">共25题，每题4分。倒计时20秒！<br>25 Questions, 4 points each. 20s per question!</p>
+        <button class="action-btn" onclick="startGame()">开始游戏 / Start Game</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div class="header-info">
+            <span id="question-tracker">题数 Q: 1/25</span>
+            <span id="timer">⏳ 20s</span>
+        </div>
+        
+        <div id="question-emoji" class="question-emoji"></div>
+        <div id="question-text" class="question-box"></div>
+        
+        <div id="options-container" class="options-container">
+            </div>
+
+        <div id="explanation-box" class="hidden">
+            <strong>💡 讲解 / Explanation:</strong><br>
+            <span id="explanation-text"></span>
+        </div>
+
+        <div class="controls">
+            <button id="skip-btn" class="action-btn secondary" onclick="handleTimeOut()">跳过 / Skip</button>
+            <button id="next-btn" class="action-btn hidden" onclick="nextQuestion()">下一题 / Next</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h1>📊 成绩报告 / Result</h1>
+        <div class="grade-display" id="grade-letter">A</div>
+        <div class="score-display">总分 Score: <span id="final-score"></span> / 100</div>
+        
+        <div class="message">
+            无论结果如何，老师都为你感到骄傲！<br>
+            Keep up the great effort!<br>
+            持续加油，永不放弃！
+        </div>
+
+        <p style="font-size: 1.1rem; margin-bottom: 5px;">请点击下方按钮填写你的分数：<br>Please click below to submit your score:</p>
+        <a href="https://forms.gle/XhzpFroJYf5k98y37" target="_blank" class="form-link">📝 填写分数 / Submit Score</a>
+        <br>
+        <button class="action-btn secondary" style="margin-top: 20px;" onclick="location.reload()">再玩一次 / Play Again</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            emoji: "🔥",
+            q: "什么是热？<br>What is heat?",
+            options: [
+                "一种物质 <br>A substance",
+                "把物质变热的一种能 <br>A form of energy that makes matter hot",
+                "物质的冷热程度 <br>Degree of hotness or coldness",
+                "测量单位 <br>A measurement unit"
+            ],
+            answer: 1,
+            explanation: "热是一种能，可以把物质变热。Heat is a form of energy that makes substances hot."
+        },
+        {
+            emoji: "🌡️",
+            q: "什么是温度？<br>What is temperature?",
+            options: [
+                "热量的大小 <br>Amount of heat",
+                "物质受热的变化 <br>Changes when heated",
+                "物质的冷热程度 <br>The degree of hotness or coldness of a substance",
+                "一种有毒液体 <br>A toxic liquid"
+            ],
+            answer: 2,
+            explanation: "温度代表物质的冷热程度。Temperature refers to how hot or cold a substance is."
+        },
+        {
+            emoji: "🔬",
+            q: "人们单凭触觉能准确知道温度吗？<br>Can we accurately measure temperature just by touch?",
+            options: [
+                "能，很准确 <br>Yes, very accurately",
+                "不能，须用温度计 <br>No, we must use a thermometer",
+                "看情况而定 <br>Depends on the situation",
+                "只能在冷水中准确测量 <br>Only accurate in cold water"
+            ],
+            answer: 1,
+            explanation: "单凭触觉不准确，我们需要使用温度计。Touch is unreliable; we need a thermometer for accurate measurement."
+        },
+        {
+            emoji: "📏",
+            q: "测量温度的常用单位是什么？<br>What is the commonly used unit for measuring temperature?",
+            options: [
+                "毫米 (mm) <br>Millimeter",
+                "毫升 (ml) <br>Milliliter",
+                "摄氏度 (°C) <br>Degree Celsius",
+                "克 (g) <br>Gram"
+            ],
+            answer: 2,
+            explanation: "温度的常用测量单位是摄氏度(°C)。The common unit for temperature is Degree Celsius (°C)."
+        },
+        {
+            emoji: "🧊",
+            q: "水开始变成冰块时的温度（冰点）是多少？<br>What is the freezing point of water?",
+            options: [
+                "100°C",
+                "50°C",
+                "25°C",
+                "0°C"
+            ],
+            answer: 3,
+            explanation: "水的冰点是 0°C。The freezing point of water is 0°C."
+        },
+        {
+            emoji: "☕",
+            q: "当水达到沸点后，温度会怎样？<br>What happens to the temperature when water reaches its boiling point?",
+            options: [
+                "继续上升 <br>Continues to rise",
+                "保持不变 (100°C) <br>Remains constant at 100°C",
+                "马上下降 <br>Drops immediately",
+                "变成 0°C <br>Becomes 0°C"
+            ],
+            answer: 1,
+            explanation: "水沸腾后，温度会保持在 100°C 不变。Once water boils, its temperature stays constant at 100°C."
+        },
+        {
+            emoji: "👀",
+            q: "读取温度计读数时，视线应该如何？<br>How should your eyes be positioned when reading a thermometer?",
+            options: [
+                "从上往下看 <br>Looking down from above",
+                "从下往上看 <br>Looking up from below",
+                "与弯月面平行 <br>Level with the meniscus",
+                "怎样看都可以 <br>Any position is fine"
+            ],
+            answer: 2,
+            explanation: "视线必须与弯月面平行，才能读取准确读数。Eye level must be parallel to the meniscus to be accurate."
+        },
+        {
+            emoji: "🚫",
+            q: "使用温度计时，为什么玻璃泡不能碰到烧杯底和烧杯壁？<br>Why shouldn't the thermometer bulb touch the bottom or side of the beaker?",
+            options: [
+                "温度计会融化 <br>The thermometer will melt",
+                "以免影响测量的准确性 <br>To avoid affecting the accuracy of the measurement",
+                "水会立刻沸腾 <br>The water will boil immediately",
+                "水会变冷 <br>The water will get cold"
+            ],
+            answer: 1,
+            explanation: "碰到杯底或杯壁会测量到杯子的温度，而不是水的温度。Touching the beaker measures the beaker's temperature, not the liquid's."
+        },
+        {
+            emoji: "🕒",
+            q: "把一杯热水搁置在室内 30 分钟，它的温度会怎样变化？<br>What happens to a cup of hot water left in a room for 30 minutes?",
+            options: [
+                "一直上升 <br>Keeps rising",
+                "下降至 0°C <br>Drops to 0°C",
+                "下降至室温然后保持不变 <br>Drops to room temperature and remains constant",
+                "没有变化 <br>No change"
+            ],
+            answer: 2,
+            explanation: "热水散热后，温度会下降，直到与室温相同为止。Hot water loses heat until it reaches room temperature."
+        },
+        {
+            emoji: "🎈",
+            q: "物质受热后通常会有什么变化？<br>What generally happens to a substance when it is heated?",
+            options: [
+                "变得较冷、收缩 <br>Becomes colder, contracts",
+                "温度下降、膨胀 <br>Temperature drops, expands",
+                "变得较热、膨胀 <br>Becomes hotter, expands",
+                "没有改变 <br>No change"
+            ],
+            answer: 2,
+            explanation: "物质受热会变得较热、温度上升和膨胀。Substances get hotter, temperature rises, and they expand when heated."
+        },
+        {
+            emoji: "❄️",
+            q: "物质散热后通常会有什么变化？<br>What generally happens to a substance when it loses heat?",
+            options: [
+                "变得较热、膨胀 <br>Becomes hotter, expands",
+                "变得较冷、收缩 <br>Becomes colder, contracts",
+                "温度上升、收缩 <br>Temperature rises, contracts",
+                "体积变大 <br>Volume increases"
+            ],
+            answer: 1,
+            explanation: "物质散热后会变得较冷、温度下降和收缩。Substances get colder, temperature drops, and they contract when losing heat."
+        },
+        {
+            emoji: "🚂",
+            q: "为什么火车铁轨间需要留有空隙？<br>Why are there gaps between railway tracks?",
+            options: [
+                "为了美观 <br>For decoration",
+                "避免天气热时铁轨因膨胀而变形 <br>To prevent tracks from bending due to expansion on hot days",
+                "节省铁材料 <br>To save iron materials",
+                "让火车跑得更快 <br>To make trains run faster"
+            ],
+            answer: 1,
+            explanation: "天气热时铁轨会膨胀，留有空隙可避免铁轨变形。Tracks expand on hot days; gaps prevent them from buckling."
+        },
+        {
+            emoji: "⚡",
+            q: "为什么电线被悬挂得比较松弛？<br>Why are electrical wires hung loosely on poles?",
+            options: [
+                "方便鸟类停留在上面 <br>For birds to rest",
+                "避免天气热时电线融化 <br>To prevent melting on hot days",
+                "防止天气冷时电线因收缩而扯断 <br>To prevent wires from snapping due to contraction on cold days",
+                "让风容易吹过 <br>To let wind pass easily"
+            ],
+            answer: 2,
+            explanation: "天冷时电线会收缩变短，松弛悬挂能避免扯断。Wires contract and shorten on cold days; hanging them loosely prevents snapping."
+        },
+        {
+            emoji: "🌉",
+            q: "高架桥梁连接处留有空隙的目的是什么？<br>What is the purpose of leaving gaps in bridges?",
+            options: [
+                "让雨水流走 <br>To let rain flow away",
+                "避免热天桥梁因膨胀而裂开 <br>To prevent the bridge from cracking due to expansion on hot days",
+                "减轻桥的重量 <br>To reduce the bridge's weight",
+                "让车子减速 <br>To slow down cars"
+            ],
+            answer: 1,
+            explanation: "热胀冷缩原理：留空隙是为了让桥在热天有膨胀的空间。Gaps allow the bridge to expand on hot days without cracking."
+        },
+        {
+            emoji: "🍯",
+            q: "如果拧不开果酱的铁盖子，该怎么解决？<br>How can you open a tight metal lid on a jam jar?",
+            options: [
+                "把瓶盖放进冰水里 <br>Put the lid in ice water",
+                "把整个瓶子放进冰箱 <br>Put the whole jar in the fridge",
+                "把铁盖子部分浸在热水里一会 <br>Immerse the metal lid in hot water for a while",
+                "用锤子敲碎 <br>Smash it with a hammer"
+            ],
+            answer: 2,
+            explanation: "金属盖子受热膨胀变大，就能轻松拧开。The metal lid expands when heated, making it easier to unscrew."
+        },
+        {
+            emoji: "🥛",
+            q: "两个紧紧套在一起的玻璃杯，该如何安全地把它们分开？<br>How to safely separate two glass cups stuck tightly together?",
+            options: [
+                "用力拉扯 <br>Pull them apart forcefully",
+                "把上面的杯子加热水，下面的杯子放冰块 <br>Put hot water in the top cup, ice in the bottom",
+                "在上面的杯子加冰块，下方的杯子浸在热水里 <br>Put ice in the top cup, immerse the bottom cup in hot water",
+                "一起放进冰箱 <br>Put both in the fridge"
+            ],
+            answer: 2,
+            explanation: "上面的杯子遇冷收缩，下面的杯子受热膨胀，就能轻松分开。Top cup contracts with ice, bottom cup expands with heat, releasing them."
+        },
+        {
+            emoji: "🔥",
+            q: "进行铁球与铁环实验：加热前的铁球能穿过铁环。加热铁球后，会发生什么事？<br>Iron ball and ring experiment: Before heating, the ball passes through the ring. What happens after heating the ball?",
+            options: [
+                "铁球变小，更容易穿过 <br>Ball gets smaller, passes easier",
+                "铁球膨胀，无法穿过铁环 <br>Ball expands and cannot pass through the ring",
+                "铁环膨胀，铁球掉落 <br>Ring expands, ball drops",
+                "完全没有变化 <br>Absolutely no change"
+            ],
+            answer: 1,
+            explanation: "固体（铁球）受热后体积膨胀，因此无法穿过铁环。Solids (iron ball) expand when heated, making it too large to pass through."
+        },
+        {
+            emoji: "💧",
+            q: "把装有颜色水的锥形瓶浸入【热水】中，玻璃管内的水位会怎样？<br>What happens to the colored water level in a glass tube when the flask is placed in hot water?",
+            options: [
+                "水位下降 <br>Water level drops",
+                "水位上升 <br>Water level rises",
+                "水位保持不变 <br>Water level remains unchanged",
+                "颜色消失 <br>Color disappears"
+            ],
+            answer: 1,
+            explanation: "液体受热后膨胀，因此玻璃管内的水位上升。Liquids expand when heated, causing the water level to rise."
+        },
+        {
+            emoji: "🍾",
+            q: "在空玻璃瓶口套上气球，放进【热水】盆里，气球会有什么变化？<br>What happens to a balloon placed over an empty bottle when placed in a basin of hot water?",
+            options: [
+                "气球膨胀鼓起来 <br>Balloon inflates/expands",
+                "气球向瓶内收缩 <br>Balloon shrinks into the bottle",
+                "气球立刻破裂 <br>Balloon bursts immediately",
+                "没有任何变化 <br>No change at all"
+            ],
+            answer: 0,
+            explanation: "瓶内的空气受热膨胀，体积增加，使气球鼓起来。The air inside the bottle expands when heated, inflating the balloon."
+        },
+        {
+            emoji: "🍾",
+            q: "接着，如果把上述的玻璃瓶取出，放进【冷水】里，气球会有什么变化？<br>Then, what happens to the balloon if the bottle is moved to cold water?",
+            options: [
+                "气球变得更大 <br>Balloon gets bigger",
+                "气球瘪了（收缩） <br>Balloon deflates (contracts)",
+                "瓶子破裂 <br>Bottle breaks",
+                "气球飞走 <br>Balloon flies away"
+            ],
+            answer: 1,
+            explanation: "瓶内的空气散热收缩，导致气球瘪了下去。The air inside loses heat and contracts, deflating the balloon."
+        },
+        {
+            emoji: "🌡️",
+            q: "水银温度计里红色的水银柱，为什么遇热会上升？<br>Why does the liquid column in a thermometer rise when heated?",
+            options: [
+                "水银很轻 <br>The liquid is very light",
+                "水银遇热收缩 <br>The liquid contracts when heated",
+                "应用了液体热胀冷缩的原理 <br>It applies the principle of liquid thermal expansion",
+                "玻璃管变窄了 <br>The glass tube gets narrower"
+            ],
+            answer: 2,
+            explanation: "温度计内的液体受热膨胀导致液柱上升，这是热胀冷缩的应用。The liquid inside expands when heated, making the column rise."
+        },
+        {
+            emoji: "🧊",
+            q: "突破思维：水散热后会收缩，但是在达到冰点结成冰块后，体积会发生什么特殊变化？<br>Special property: Water contracts when cooling, but what happens when it reaches freezing point and becomes ice?",
+            options: [
+                "体积继续变小 <br>Volume continues to decrease",
+                "完全消失 <br>Disappears completely",
+                "体积膨胀变大 <br>Volume expands and increases",
+                "变成气体 <br>Becomes a gas"
+            ],
+            answer: 2,
+            explanation: "这是一种特殊的膨胀现象，水结冰后体积会变大。This is a special anomaly where water expands when it freezes into ice."
+        },
+        {
+            emoji: "🔴",
+            q: "在液体膨胀实验中，为什么使用“颜色水”而不是普通清水？<br>Why use 'colored water' instead of clear water in the liquid expansion experiment?",
+            options: [
+                "颜色水膨胀得更快 <br>Colored water expands faster",
+                "为了可以比较清楚地观察水位是否有变化 <br>To clearly observe if there are changes in the water level",
+                "颜色水比较重 <br>Colored water is heavier",
+                "普通清水不会膨胀 <br>Clear water does not expand"
+            ],
+            answer: 1,
+            explanation: "颜色对比度高，能帮助我们更清楚地看到玻璃管内水位的上升或下降。Color adds contrast, making the water level change much easier to see."
+        },
+        {
+            emoji: "☀️",
+            q: "当你触摸曝晒在太阳底下的一张石椅时，你会感觉到什么？<br>What do you feel when you touch a stone chair exposed to the sun?",
+            options: [
+                "冰冷，因为石头不会吸热 <br>Cold, stones don't absorb heat",
+                "热，因为石椅吸收了太阳的热能 <br>Hot, because the stone chair absorbed heat energy from the sun",
+                "柔软，石头融化了 <br>Soft, the stone is melting",
+                "没有感觉 <br>No feeling"
+            ],
+            answer: 1,
+            explanation: "太阳提供了热能，石椅受热后温度上升，所以摸起来觉得热。The sun provides heat energy, raising the chair's temperature."
+        },
+        {
+            emoji: "🔥",
+            q: "热总是如何传递的？<br>How does heat always transfer?",
+            options: [
+                "从温度较低的一端传递到温度较高的一端 <br>From cooler end to hotter end",
+                "从温度较高的一端传递到温度较低的一端 <br>From hotter end to cooler end",
+                "随机传递 <br>Transfers randomly",
+                "只在液体中传递 <br>Only transfers in liquids"
+            ],
+            answer: 1,
+            explanation: "热能总是从较热（高温）的地方传向较冷（低温）的地方。Heat always flows from a region of higher temperature to lower temperature."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+    let timeLeft = 20;
+
+    const startScreen = document.getElementById("start-screen");
+    const quizScreen = document.getElementById("quiz-screen");
+    const resultScreen = document.getElementById("result-screen");
+    const qTracker = document.getElementById("question-tracker");
+    const timerDisplay = document.getElementById("timer");
+    const qEmoji = document.getElementById("question-emoji");
+    const qText = document.getElementById("question-text");
+    const optContainer = document.getElementById("options-container");
+    const explanationBox = document.getElementById("explanation-box");
+    const explanationText = document.getElementById("explanation-text");
+    const skipBtn = document.getElementById("skip-btn");
+    const nextBtn = document.getElementById("next-btn");
+
+    function startGame() {
+        startScreen.classList.add("hidden");
+        quizScreen.classList.remove("hidden");
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        timeLeft = 20;
+        timerDisplay.innerText = `⏳ 20s`;
+        
+        explanationBox.classList.add("hidden");
+        nextBtn.classList.add("hidden");
+        skipBtn.classList.remove("hidden");
+        optContainer.innerHTML = "";
+
+        let qData = questions[currentQuestionIndex];
+        qTracker.innerText = `题数 Q: ${currentQuestionIndex + 1} / 25`;
+        qEmoji.innerText = qData.emoji;
+        qText.innerHTML = qData.q;
+
+        qData.options.forEach((opt, index) => {
+            let btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerHTML = opt;
+            btn.onclick = () => checkAnswer(index, btn);
+            optContainer.appendChild(btn);
+        });
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.innerText = `⏳ ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function handleTimeOut() {
+        clearInterval(timerInterval);
+        timerDisplay.innerText = `⏳ 0s`;
+        
+        // Disable all buttons
+        const buttons = optContainer.querySelectorAll(".option-btn");
+        buttons.forEach(b => b.disabled = true);
+        
+        showExplanation(questions[currentQuestionIndex].explanation);
+        skipBtn.classList.add("hidden");
+        nextBtn.classList.remove("hidden");
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        clearInterval(timerInterval);
+        const qData = questions[currentQuestionIndex];
+        const buttons = optContainer.querySelectorAll(".option-btn");
+        
+        buttons.forEach(b => b.disabled = true);
+
+        if (selectedIndex === qData.answer) {
+            btnElement.classList.add("correct");
+            score += 4;
+        } else {
+            btnElement.classList.add("wrong");
+            // NOTE: Requirement says DO NOT show the correct answer explicitly via highlight. 
+            // So we only highlight the user's wrong choice in red, and explain the concept below.
+        }
+
+        showExplanation(qData.explanation);
+        skipBtn.classList.add("hidden");
+        nextBtn.classList.remove("hidden");
+    }
+
+    function showExplanation(text) {
+        explanationText.innerHTML = text;
+        explanationBox.classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        quizScreen.classList.add("hidden");
+        resultScreen.classList.remove("hidden");
+        
+        document.getElementById("final-score").innerText = score;
+        
+        let grade = "E";
+        if (score > 84) grade = "A";
+        else if (score > 68) grade = "B";
+        else if (score > 52) grade = "C";
+        else if (score > 36) grade = "D";
+
+        let gradeElem = document.getElementById("grade-letter");
+        gradeElem.innerText = grade;
+
+        // Change color based on grade
+        if (grade === "A" || grade === "B") gradeElem.style.color = "#28a745";
+        else if (grade === "C") gradeElem.style.color = "#ffc107";
+        else gradeElem.style.color = "#dc3545";
+    }
+</script>
+
+</body>
+</html>
