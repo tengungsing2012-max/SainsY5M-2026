@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>植物的生存秘密 / Plant Survival Secrets</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #game-container {
+            background-color: #1e1e1e;
+            border: 4px solid #ffcc00;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #ffcc00;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        #timer {
+            color: #ff4c4c;
+        }
+        .question-text {
+            font-size: 24px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .option-btn {
+            background-color: #333333;
+            color: #ffffff;
+            border: 2px solid #555;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 20px;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .option-btn:hover {
+            background-color: #444;
+        }
+        .option-btn.correct {
+            background-color: #4caf50 !important;
+            border-color: #4caf50;
+            color: white;
+        }
+        .option-btn.wrong {
+            background-color: #f44336 !important;
+            border-color: #f44336;
+            color: white;
+        }
+        .explanation {
+            background-color: #005f73;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 18px;
+            display: none;
+            text-align: left;
+        }
+        #next-btn, #start-btn {
+            background-color: #ffcc00;
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        #next-btn {
+            display: none;
+        }
+        #next-btn:hover, #start-btn:hover {
+            background-color: #e6b800;
+        }
+        #result-screen {
+            display: none;
+        }
+        .grade {
+            font-size: 40px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin: 20px 0;
+        }
+        .link-btn {
+            background-color: #4caf50;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 20px;
+            width: 90%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>植物的秘密大挑战<br>Plant Secrets Challenge</h1>
+        <p style="font-size: 18px;">共25题 | 限时15秒/题 | 满分100分<br>25 Questions | 15s per Question | Total 100 Points</p>
+        <button id="start-btn" onclick="startGame()">开始游戏 / Start Game</button>
+    </div>
+
+    <div id="quiz-screen" style="display: none;">
+        <div class="header-info">
+            <span id="question-count">题/Q: 1/25</span>
+            <span id="timer">⏱️ 15s</span>
+            <span id="score-display">分/Pts: 0</span>
+        </div>
+        <div id="question" class="question-text">问题加载中...</div>
+        <div id="options">
+            <button class="option-btn" onclick="checkAnswer(0)" id="btn-0"></button>
+            <button class="option-btn" onclick="checkAnswer(1)" id="btn-1"></button>
+            <button class="option-btn" onclick="checkAnswer(2)" id="btn-2"></button>
+        </div>
+        <div id="explanation" class="explanation"></div>
+        <button id="next-btn" onclick="nextQuestion()">下一题 / Next</button>
+    </div>
+
+    <div id="result-screen">
+        <h1>测验结束 / Quiz Finished!</h1>
+        <p style="font-size: 24px;">你的总分 / Your Total Score:</p>
+        <div class="grade" id="final-score">0 / 100</div>
+        <p style="font-size: 24px;">等级 / Grade:</p>
+        <div class="grade" id="final-grade">A</div>
+        <p style="font-size: 20px; color: #ffeb3b; margin-top: 20px;">持续加油，永不放弃！<br>Keep going, never give up!</p>
+        <a href="https://forms.gle/4aKPkWXXu52WMy9E9" target="_blank" class="link-btn">填写得分表 / Submit Your Score</a>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            q: "哪种植物长有尖刺来保护自己？<br>Which plant has thorns to protect itself?",
+            options: ["玫瑰 / Rose", "波罗蜜 / Jackfruit", "茅草 / Lalang"],
+            ans: 0,
+            explain: "长有尖刺的植物使动物不敢靠近它们，例如玫瑰。[cite: 87]"
+        },
+        {
+            q: "波罗蜜分泌什么来使动物的皮肤发痒？<br>What does a jackfruit secrete to make animals' skin itch?",
+            options: ["毒素 / Poison", "臭味 / Bad smell", "胶乳 / Latex"],
+            ans: 2,
+            explain: "植物分泌的胶乳使接触到的动物皮肤发痒，例如波罗蜜。[cite: 88]"
+        },
+        {
+            q: "竹和茅草长有什么特征使皮肤发痒及疼痛？<br>What characteristic do bamboo and lalang have that causes skin itchiness and pain?",
+            options: ["细毛 / Fine hairs", "尖刺 / Thorns", "毒素 / Poison"],
+            ans: 0,
+            explain: "长有细毛的植物使人类或动物的皮肤发痒及疼痛，例如竹、茅草。[cite: 89]"
+        },
+        {
+            q: "莱佛士花如何让动物远离它？<br>How does the Rafflesia keep animals away?",
+            options: ["长有尖刺 / Growing thorns", "发出臭味 / Emitting bad smell", "分泌毒素 / Secreting poison"],
+            ans: 1,
+            explain: "会发出臭味的植物使动物和人类远离它们，例如莱佛士花。[cite: 91]"
+        },
+        {
+            q: "夹竹桃含有哪种自卫特征？<br>What self-defense characteristic does the oleander contain?",
+            options: ["臭味 / Bad smell", "胶乳 / Latex", "毒素 / Poison"],
+            ans: 2,
+            explain: "含有毒素的植物和果实能避免被动物吃掉，例如夹竹桃。[cite: 90]"
+        },
+        {
+            q: "面包树在旱季和冬季时会怎么做以减少水分蒸发？<br>What does the breadnut tree do during dry and winter seasons to reduce water evaporation?",
+            options: ["储存水分 / Store water", "落叶 / Shed leaves", "卷曲叶子 / Roll leaves"],
+            ans: 1,
+            explain: "有些植物会像面包树一样，在固定季节落叶，以减少水分从叶子上蒸发。[cite: 122]"
+        },
+        {
+            q: "生长在寒冷地区的植物通常有什么特征来抵御严寒？<br>What characteristic do plants in cold regions usually have to resist extreme cold?",
+            options: ["长根 / Long roots", "蜡质茎 / Waxy stem", "粗厚的树皮 / Thick bark"],
+            ans: 2,
+            explain: "生长在寒冷地区的植物，大多长有粗厚的树皮，以抵御严寒。[cite: 126]"
+        },
+        {
+            q: "仙人掌有什么特征可以减少水分流失？<br>What characteristic does a cactus have to reduce water loss?",
+            options: ["针状叶 / Needle leaves", "落叶 / Shed leaves", "粗厚树皮 / Thick bark"],
+            ans: 0,
+            explain: "仙人掌的叶面面积小（针状叶），可以减少水分流失。[cite: 143, 145]"
+        },
+        {
+            q: "为什么沙漠中的骆驼刺长有长根？<br>Why does the camel thorn in the desert have long roots?",
+            options: ["寻找水源 / To find water", "抵御强风 / To block wind", "吸引动物 / To attract animals"],
+            ans: 0,
+            explain: "沙漠干旱，长根可以伸至土壤深处寻找水源。[cite: 148, 149]"
+        },
+        {
+            q: "红烛花和甘蔗茎表面的蜡质层有什么功能？<br>What is the function of the waxy layer on flamingo lily and sugarcane stems?",
+            options: ["储存水分 / Store water", "避免水分流失 / Prevent water loss", "产生毒素 / Produce poison"],
+            ans: 1,
+            explain: "茎上的蜡质层能避免水分流失。[cite: 153, 154]"
+        },
+        {
+            q: "多肉植物和香蕉如何适应干旱季节？<br>How do succulent plants and bananas adapt to the dry season?",
+            options: ["拥有储水的茎 / Have water-storing stems", "长出细毛 / Grow fine hairs", "发出臭味 / Emit bad smell"],
+            ans: 0,
+            explain: "粗厚的茎可以储存水分，以备干旱季节时可以使用。[cite: 156, 157, 158]"
+        },
+        {
+            q: "蕨类植物的卷曲叶子如何帮助它？<br>How do the rolled leaves of ferns help them?",
+            options: ["吸收更多阳光 / Absorb more sunlight", "减少曝露在阳光下的面积 / Reduce exposure to sunlight", "散发臭味 / Emit bad smell"],
+            ans: 1,
+            explain: "有些植物的叶子卷曲，能减少曝露在阳光下的面积，减少水分流失。[cite: 165]"
+        },
+        {
+            q: "椰树的羽状叶有什么作用？<br>What is the function of the coconut tree's pinnate leaves?",
+            options: ["储存水分 / Store water", "增加风的阻力 / Increase wind resistance", "减少风的阻力 / Reduce wind resistance"],
+            ans: 2,
+            explain: "羽状叶可以减少风的阻力，阻挡强风吹袭。[cite: 178, 179]"
+        },
+        {
+            q: "竹和稻的柔韧茎有什么好处？<br>What is the advantage of flexible stems in bamboo and paddy?",
+            options: ["不易被折断 / Not easily broken", "防止水分蒸发 / Prevent water evaporation", "抵抗寒冷 / Resist cold"],
+            ans: 0,
+            explain: "有弹性的茎，柔软而坚韧，可以随着风的方向摆动，避免被吹倒折断。[cite: 181, 182]"
+        },
+        {
+            q: "靠风力传播的种子通常有什么特征？<br>What characteristics do seeds dispersed by wind usually have?",
+            options: ["细小轻盈 / Small and lightweight", "鲜艳香甜 / Bright and sweet", "有防水蜡质皮 / Waterproof waxy skin"],
+            ans: 0,
+            explain: "细小轻盈的种子或果实，可以随风飘扬到远处。[cite: 257]"
+        },
+        {
+            q: "龙脑香和青龙木的种子靠什么传播？<br>How are the seeds of dipterocarp and angsana dispersed?",
+            options: ["风力 / Wind", "水力 / Water", "自动爆裂 / Explosive mechanism"],
+            ans: 0,
+            explain: "细小轻盈的种子，例如龙脑香、青龙木，靠风力传播。[cite: 257]"
+        },
+        {
+            q: "莲和红树靠什么传播它们的种子？<br>How do lotus and mangroves disperse their seeds?",
+            options: ["人类 / Humans", "风力 / Wind", "水力 / Water"],
+            ans: 2,
+            explain: "生长在河边或海边的植物果实能浮于水面，随水流传播，如莲和红树。[cite: 269]"
+        },
+        {
+            q: "椰子为什么能浮在水面上？<br>Why can a coconut float on water?",
+            options: ["因为长有细毛 / Has fine hairs", "因为壳内含纤维和气室 / Shell contains fiber and air spaces", "因为它很轻 / Because it is very light"],
+            ans: 1,
+            explain: "椰子有不透水的蜡质外皮，壳内含纤维和气室，能增加浮力。[cite: 271, 272] "
+        },
+        {
+            q: "凤仙花和羊角豆的种子靠什么方法传播？<br>How are the seeds of balsam and okra dispersed?",
+            options: ["风力 / Wind", "水力 / Water", "自动爆裂 / Explosive mechanism"],
+            ans: 2,
+            explain: "有些植物果实成熟干瘪后会自动爆裂，弹射种子，如凤仙花、羊角豆。[cite: 285, 286, 287]"
+        },
+        {
+            q: "橡胶树的果实成熟后会怎样？<br>What happens to rubber tree fruits when they mature?",
+            options: ["自动爆裂 / Explode automatically", "吸引动物 / Attract animals", "随风飘扬 / Float in the wind"],
+            ans: 0,
+            explain: "橡胶是靠果实成熟干瘪后自动爆裂来传播种子的。[cite: 285, 287]"
+        },
+        {
+            q: "拥有鲜艳颜色和香甜果肉的果实靠什么传播？<br>What method disperses fruits with bright colors and sweet flesh?",
+            options: ["自动爆裂 / Explosive", "人类或动物 / Humans or animals", "风力 / Wind"],
+            ans: 1,
+            explain: "拥有鲜艳的颜色、香甜果肉的果实能吸引人类或动物主动接近并传播。[cite: 312]"
+        },
+        {
+            q: "木瓜的种子怎样被传播？<br>How are papaya seeds dispersed?",
+            options: ["随着动物粪便排出 / Excreted with animal feces", "随水流漂流 / Float with water", "自动爆裂 / Explode automatically"],
+            ans: 0,
+            explain: "木瓜种子细小坚硬不能消化，会随着动物的粪便排出体外。[cite: 313]"
+        },
+        {
+            q: "相思草和梵天花为什么长有钩刺？<br>Why do lovegrass and pulut-pulut have hooks?",
+            options: ["防止被吃掉 / Prevent being eaten", "依附在人类衣物或动物毛发上传播 / Attach to clothing or fur for dispersal", "减少水分流失 / Reduce water loss"],
+            ans: 1,
+            explain: "长有钩刺的种子会依附在人类的衣物或动物的毛发上进行传播。[cite: 317, 318]"
+        },
+        {
+            q: "植物传播种子的最主要目的是什么？<br>What is the main purpose of plants dispersing seeds?",
+            options: ["提供食物给动物 / Provide food for animals", "确保物种生存 / Ensure species survival", "减少土壤水分 / Reduce soil moisture"],
+            ans: 1,
+            explain: "每种动植物的存在都有贡献，必须繁衍传播以确保物种生存。[cite: 22, 212, 345, 347]"
+        },
+        {
+            q: "如果植物无法繁衍，会造成什么后果？<br>What happens if plants fail to reproduce?",
+            options: ["导致生态危机 / Cause an ecological crisis", "空气变得更清新 / Air becomes fresher", "动物会自己制造食物 / Animals will make their own food"],
+            ans: 0,
+            explain: "任何一个物种无法繁衍都可能造成生态危机，影响食物来源和生态平衡。[cite: 345, 346, 350]"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timeLeft = 15;
+    let timerInterval;
+    let answered = false;
+
+    function startGame() {
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("quiz-screen").style.display = "block";
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        answered = false;
+        timeLeft = 15;
+        document.getElementById("timer").innerText = `⏱️ ${timeLeft}s`;
+        document.getElementById("explanation").style.display = "none";
+        document.getElementById("next-btn").style.display = "none";
+        
+        let qData = quizData[currentQuestionIndex];
+        document.getElementById("question").innerHTML = qData.q;
+        document.getElementById("question-count").innerText = `题/Q: ${currentQuestionIndex + 1}/${quizData.length}`;
+        
+        for (let i = 0; i < 3; i++) {
+            let btn = document.getElementById(`btn-${i}`);
+            btn.innerText = qData.options[i];
+            btn.className = "option-btn";
+            btn.disabled = false;
+        }
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+        if(answered) return;
+        timeLeft--;
+        document.getElementById("timer").innerText = `⏱️ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeOut();
+        }
+    }
+
+    function timeOut() {
+        answered = true;
+        let qData = quizData[currentQuestionIndex];
+        
+        for (let i = 0; i < 3; i++) {
+            let btn = document.getElementById(`btn-${i}`);
+            btn.disabled = true;
+            if (i === qData.ans) {
+                btn.classList.add("correct");
+            }
+        }
+        
+        showExplanation(false, true);
+    }
+
+    function checkAnswer(selectedIndex) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerInterval);
+
+        let qData = quizData[currentQuestionIndex];
+        let correct = (selectedIndex === qData.ans);
+
+        for (let i = 0; i < 3; i++) {
+            let btn = document.getElementById(`btn-${i}`);
+            btn.disabled = true;
+            if (i === qData.ans) {
+                btn.classList.add("correct");
+            } else if (i === selectedIndex && !correct) {
+                btn.classList.add("wrong");
+            }
+        }
+
+        if (correct) {
+            score += 4;
+            document.getElementById("score-display").innerText = `分/Pts: ${score}`;
+        }
+
+        showExplanation(correct, false);
+    }
+
+    function showExplanation(isCorrect, isTimeOut) {
+        let expDiv = document.getElementById("explanation");
+        let qData = quizData[currentQuestionIndex];
+        
+        let statusHtml = "";
+        if(isTimeOut) {
+            statusHtml = "<strong style='color:#ff9800;'>超时！Time's up!</strong><br><br>";
+        } else if(isCorrect) {
+            statusHtml = "<strong style='color:#4caf50;'>答对了！Correct!</strong><br><br>";
+        } else {
+            statusHtml = "<strong style='color:#f44336;'>答错了！Wrong!</strong><br><br>";
+        }
+
+        expDiv.innerHTML = statusHtml + "<strong>解析/Explanation:</strong><br>" + qData.explain;
+        expDiv.style.display = "block";
+        document.getElementById("next-btn").style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("quiz-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        
+        document.getElementById("final-score").innerText = `${score} / 100`;
+        
+        let grade = "";
+        let color = "";
+        if (score > 84) { grade = "A"; color = "#4caf50"; }
+        else if (score > 68) { grade = "B"; color = "#8bc34a"; }
+        else if (score > 52) { grade = "C"; color = "#ffeb3b"; }
+        else if (score > 36) { grade = "D"; color = "#ff9800"; }
+        else { grade = "E"; color = "#f44336"; }
+        
+        let gradeElement = document.getElementById("final-grade");
+        gradeElement.innerText = grade;
+        gradeElement.style.color = color;
+    }
+</script>
+
+</body>
+</html>

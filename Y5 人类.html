@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学小测验：骨骼与血液循环系统 | Science Quiz</title>
+    <style>
+        :root {
+            --primary-color: #3498DB;
+            --success-color: #27AE60;
+            --danger-color: #E74C3C;
+            --bg-color: #ECF0F1;
+            --card-bg: #FFFFFF;
+            --text-color: #2C3E50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+            color: #2980B9;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #BDC3C7;
+        }
+        #timer {
+            color: var(--danger-color);
+            font-size: 1.5rem;
+        }
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+        .question-en {
+            font-size: 1.1rem;
+            color: #7F8C8D;
+            margin-bottom: 25px;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            background-color: #F8F9FA;
+            border: 2px solid #BDC3C7;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-color);
+            text-align: left;
+            line-height: 1.4;
+        }
+        .option-btn:hover {
+            background-color: #D6EAF8;
+            border-color: var(--primary-color);
+        }
+        .option-btn.correct {
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+        .option-btn.wrong {
+            background-color: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.95;
+        }
+        #explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            text-align: left;
+            line-height: 1.5;
+        }
+        .explanation-correct {
+            background-color: #D4EFDF;
+            color: #196F3D;
+            border: 1px solid #27AE60;
+        }
+        .explanation-wrong {
+            background-color: #FADBD8;
+            color: #943126;
+            border: 1px solid #E74C3C;
+        }
+        #next-btn, #start-btn, #form-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #next-btn:hover, #start-btn:hover, #form-btn:hover {
+            background-color: #2980B9;
+        }
+        #score-screen {
+            display: none;
+        }
+        .grade {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="start-screen">
+        <h1>人体系统挑战赛</h1>
+        <h3>Human Body Systems Challenge</h3>
+        <p style="font-size:1.2rem; line-height: 1.6; color:#34495E;">
+            测试范围：骨骼与血液循环系统<br>
+            共 25 题，每题 4 分。<br>
+            25 Questions, 4 points each.<br><br>
+            请在 <b>12秒</b> 内作答！<br>
+            Answer within <b>12 seconds</b>!
+        </p>
+        <button id="start-btn" onclick="startGame()">开始游戏 Start Game</button>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+        <div class="header-info">
+            <span id="question-counter">题/Q: 1/25</span>
+            <span id="score-display">分数/Score: 0</span>
+            <span id="timer">⏱️ 12s</span>
+        </div>
+        
+        <div class="question-text" id="question-zh"></div>
+        <div class="question-en" id="question-en"></div>
+        
+        <div id="options-container"></div>
+        
+        <div id="explanation-box"></div>
+        
+        <button id="next-btn" style="display:none;" onclick="nextQuestion()">下一题 Next Question</button>
+    </div>
+
+    <div id="score-screen">
+        <h1>测验结束！ Quiz Completed!</h1>
+        <h2 style="font-size: 2rem; margin-top:20px; color:#2C3E50;">你的总分 Your Score:<br><span id="final-score" style="font-size: 3rem; color: #E67E22;">0</span> / 100</h2>
+        <p style="font-size: 1.5rem; margin-bottom: 0;">等级 Grade:</p>
+        <div class="grade" id="final-grade">A</div>
+        <p id="grade-message" style="font-size: 1.3rem; margin-bottom: 30px; font-weight: bold;"></p>
+        
+        <button id="form-btn" onclick="goToForm()">填写分数 Submit Score 🚀</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            zh: "成年人体内大约有多少块骨头？", en: "Approximately how many bones are there in an adult human body?",
+            options: ["106块 (106 bones)", "206块 (206 bones)", "300块 (300 bones)"], answer: 1,
+            expZh: "成年人有206块坚硬的骨头构成骨骼系统。新生儿则约有300块。", expEn: "Adults have 206 bones forming the skeletal system. Newborns have about 300."
+        },
+        {
+            zh: "哪个骨骼能保护脑并形成脸部的支架？", en: "Which bone protects the brain and forms the facial structure?",
+            options: ["头骨 (Skull)", "肋骨 (Ribs)", "脊柱 (Backbone)"], answer: 0,
+            expZh: "头骨的功能是保护脑，并形成脸部支架。", expEn: "The skull's function is to protect the brain and form the facial structure."
+        },
+        {
+            zh: "肋骨的主要功能是什么？", en: "What is the main function of the ribs?",
+            options: ["支撑身体 (Support the body)", "保护内脏 (Protect internal organs)", "让人能行走 (Allow walking)"], answer: 1,
+            expZh: "肋骨能保护肺、肝、心脏等重要的内脏。", expEn: "Ribs protect important internal organs like the lungs, liver, and heart."
+        },
+        {
+            zh: "支撑头部和身体，使身体能直立的骨骼是什么？", en: "Which bone supports the head and body, keeping the body upright?",
+            options: ["手部骨骼 (Hand bones)", "脊柱 (Backbone/Spine)", "头骨 (Skull)"], answer: 1,
+            expZh: "脊柱能支撑头部和身体，让身体直立，并保护脊髓。", expEn: "The backbone supports the head and body, keeps it upright, and protects the spinal cord."
+        },
+        {
+            zh: "哪种骨骼支撑整个身体的重量，让我们能行走和跳跃？", en: "Which bones support the entire body weight and allow us to walk and jump?",
+            options: ["足部骨骼 (Foot/Leg bones)", "手部骨骼 (Hand bones)", "肋骨 (Ribs)"], answer: 0,
+            expZh: "足部骨骼能支撑人体重量，并让我们能行走、跳跃和蹲下。", expEn: "Foot bones support body weight and allow us to walk, jump, and squat."
+        },
+        {
+            zh: "骨头与骨头之间连结的地方称为什么？", en: "What is the place where bones connect to each other called?",
+            options: ["血管 (Blood vessel)", "神经 (Nerve)", "关节 (Joint)"], answer: 2,
+            expZh: "关节是骨头与骨头之间连结的地方，使我们能够活动自如。", expEn: "A joint is where bones connect, allowing us to move freely."
+        },
+        {
+            zh: "关节的主要功能是什么？", en: "What is the main function of joints?",
+            options: ["制造血液 (Produce blood)", "使我们能活动自如 (Allow us to move freely)", "消化食物 (Digest food)"], answer: 1,
+            expZh: "有了关节，我们的身体部位才能弯曲并活动自如。", expEn: "Thanks to joints, our body parts can bend and move freely."
+        },
+        {
+            zh: "关节处有什么组织能减少活动时骨头之间的摩擦？", en: "What tissue at the joints reduces friction between bones during movement?",
+            options: ["软骨 (Cartilage)", "肌肉 (Muscle)", "皮肤 (Skin)"], answer: 0,
+            expZh: "骨头表面覆盖了光滑的软骨，加上滑液，能减少摩擦。", expEn: "The bone surface is covered with smooth cartilage, which, along with synovial fluid, reduces friction."
+        },
+        {
+            zh: "哪一项不属于人体的血液循环系统？", en: "Which of the following does NOT belong to the human blood circulatory system?",
+            options: ["心脏 (Heart)", "血管 (Blood vessels)", "胃 (Stomach)"], answer: 2,
+            expZh: "血液循环系统由心脏、血管和血液构成，并与肺合作。胃属于消化系统。", expEn: "The circulatory system consists of the heart, blood vessels, and blood. The stomach is part of the digestive system."
+        },
+        {
+            zh: "把血液推送到全身的器官是什么？", en: "Which organ pumps blood to the whole body?",
+            options: ["肺 (Lungs)", "心脏 (Heart)", "肾 (Kidney)"], answer: 1,
+            expZh: "心脏像泵一样，能把血液推送到肺和全身。", expEn: "The heart acts like a pump, pushing blood to the lungs and the whole body."
+        },
+        {
+            zh: "在血液循环系统中，输送血液到全身的通道是？", en: "In the circulatory system, what acts as the channel to transport blood?",
+            options: ["气管 (Trachea)", "食道 (Esophagus)", "血管 (Blood vessels)"], answer: 2,
+            expZh: "血管遍布全身，是把血液输送到全身各处的通道。", expEn: "Blood vessels are spread throughout the body and serve as channels to transport blood."
+        },
+        {
+            zh: "血液在人体内的主要功能是什么？", en: "What is the main function of blood in the human body?",
+            options: ["支撑身体 (Support the body)", "输送氧气营养，带走废物 (Transport oxygen/nutrients, remove waste)", "消化食物 (Digest food)"], answer: 1,
+            expZh: "血液把氧气和营养素输送到全身，并把二氧化碳等废物带走。", expEn: "Blood transports oxygen and nutrients to the body and carries away waste like carbon dioxide."
+        },
+        {
+            zh: "氧气和二氧化碳在人体的哪个器官进行交换？", en: "In which human organ does the exchange of oxygen and carbon dioxide occur?",
+            options: ["心脏 (Heart)", "肝脏 (Liver)", "肺 (Lungs)"], answer: 2,
+            expZh: "肺是氧气和二氧化碳进行交换的场所。", expEn: "The lungs are the place where oxygen and carbon dioxide are exchanged."
+        },
+        {
+            zh: "心脏会把含有较多二氧化碳的血液推送到哪里？", en: "Where does the heart pump blood with high carbon dioxide content to?",
+            options: ["全身体 (Whole body)", "肺 (Lungs)", "脑部 (Brain)"], answer: 1,
+            expZh: "二氧化碳含量较高的血液进入心脏后，会被推送到肺，以呼出体外。", expEn: "Blood high in CO2 enters the heart and is pumped to the lungs to be exhaled."
+        },
+        {
+            zh: "从肺部回到心脏的血液，含有较多的什么成分？", en: "What does the blood returning from the lungs to the heart contain more of?",
+            options: ["氧气 (Oxygen)", "二氧化碳 (Carbon dioxide)", "尿液 (Urine)"], answer: 0,
+            expZh: "在肺部吸收了氧气后，氧气含量较高的血液回到心脏，再被推送到全身。", expEn: "After absorbing oxygen in the lungs, oxygen-rich blood returns to the heart to be pumped to the body."
+        },
+        {
+            zh: "正常成年人的心脏每分钟大约跳动多少次？", en: "About how many times does a normal adult's heart beat per minute?",
+            options: ["30至40次 (30-40 times)", "70至75次 (70-75 times)", "150至200次 (150-200 times)"], answer: 1,
+            expZh: "我们的心脏每分钟跳动大概70至75次，每天跳动10万次以上。", expEn: "Our heart beats about 70 to 75 times per minute, over 100,000 times a day."
+        },
+        {
+            zh: "如果没有血液循环系统，人体会怎样？", en: "What would happen to the human body without the blood circulatory system?",
+            options: ["会变得更高 (Grow taller)", "不能获得氧气和营养素，最终死亡 (Cannot get oxygen/nutrients, eventually die)", "骨头会变硬 (Bones get harder)"], answer: 1,
+            expZh: "血液循环系统对人体非常重要，没有它，人体细胞无法获得氧气和营养素。", expEn: "Without it, human cells cannot get oxygen and nutrients, leading to death."
+        },
+        {
+            zh: "吃东西时被哽着会导致呼吸困难，这说明了哪两个系统互相关联？", en: "Choking causes breathing difficulty. Which two systems does this show are interconnected?",
+            options: ["消化系统与呼吸系统 (Digestive & Respiratory)", "骨骼系统与排泄系统 (Skeletal & Excretory)", "血液循环与呼吸系统 (Circulatory & Respiratory)"], answer: 0,
+            expZh: "食物卡在食道入口（消化系统），阻挡了空气进入气管（呼吸系统）。", expEn: "Food stuck in the esophagus (digestive) blocks air from entering the trachea (respiratory)."
+        },
+        {
+            zh: "手部骨折时会导致局部肿胀，是因为骨骼系统影响了哪个系统？", en: "A hand fracture causes swelling because the skeletal system affects which system?",
+            options: ["消化系统 (Digestive system)", "血液循环系统 (Blood circulatory system)", "排泄系统 (Excretory system)"], answer: 1,
+            expZh: "骨折损伤了周围的血管，影响了血液流动，导致受伤部位肿胀。", expEn: "Fractures damage surrounding blood vessels, affecting blood flow and causing swelling."
+        },
+        {
+            zh: "血液循环系统为骨骼系统提供了什么？", en: "What does the blood circulatory system provide for the skeletal system?",
+            options: ["二氧化碳 (Carbon dioxide)", "骨头 (Bones)", "氧气和营养素 (Oxygen and nutrients)"], answer: 2,
+            expZh: "血液循环系统为骨骼系统输送氧气和有助骨骼生长的营养素。", expEn: "It delivers oxygen and nutrients needed for bone growth."
+        },
+        {
+            zh: "常做运动对人体系统有什么好处？", en: "What is the benefit of regular exercise to body systems?",
+            options: ["增强心脏和肺部功能 (Strengthens heart and lung functions)", "使骨头变软 (Makes bones soft)", "减少血液 (Reduces blood)"], answer: 0,
+            expZh: "常运动能增强心脏功能促进血液循环，也能增强肺功能并强健骨骼。", expEn: "Regular exercise strengthens the heart, improves circulation, boosts lung function, and strengthens bones."
+        },
+        {
+            zh: "饮食中少油、少盐和少糖，主要能避免什么问题？", en: "A diet low in oil, salt, and sugar mainly prevents what problem?",
+            options: ["骨头折断 (Bone fracture)", "血管阻塞 (Blocked blood vessels)", "便秘 (Constipation)"], answer: 1,
+            expZh: "健康饮食（少油盐糖）能保护血液循环系统，避免血管阻塞。", expEn: "A healthy diet protects the circulatory system by preventing blocked blood vessels."
+        },
+        {
+            zh: "喝足够的水能使哪个系统顺畅运作？", en: "Drinking enough water ensures the smooth operation of which system?",
+            options: ["排泄系统 (Excretory system)", "骨骼系统 (Skeletal system)", "呼吸系统 (Respiratory system)"], answer: 0,
+            expZh: "喝足够的水可以帮助身体排出毒素，使排泄系统保持顺畅。", expEn: "Drinking enough water helps the body flush out toxins, keeping the excretory system running smoothly."
+        },
+        {
+            zh: "骑自行车时戴头盔及穿戴安全护具是为了保护什么系统？", en: "Why do we wear helmets and safety gear when cycling?",
+            options: ["消化系统 (Digestive system)", "骨骼系统 (Skeletal system)", "排泄系统 (Excretory system)"], answer: 1,
+            expZh: "做好安全措施可以保护我们的骨骼系统（如头骨和关节）免受伤害。", expEn: "Safety gear protects our skeletal system (like the skull and joints) from injury."
+        },
+        {
+            zh: "多吃富含膳食纤维的绿色蔬果，主要是为了保护哪个系统并避免便秘？", en: "Eating vegetables and fruits rich in dietary fiber mainly protects which system and prevents constipation?",
+            options: ["消化系统 (Digestive system)", "呼吸系统 (Respiratory system)", "骨骼系统 (Skeletal system)"], answer: 0,
+            expZh: "多吃蔬果能帮助消化，避免便秘，从而保护消化系统健康。", expEn: "Eating fruits and vegetables helps digestion and prevents constipation, protecting the digestive system."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timeLeft = 12;
+    let timerInterval;
+
+    const gameContainer = document.getElementById('game-container');
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const scoreScreen = document.getElementById('score-screen');
+    
+    function startGame() {
+        startScreen.style.display = 'none';
+        quizScreen.style.display = 'block';
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function startTimer() {
+        timeLeft = 12;
+        document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `⏱️ ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                checkAnswer(-1); // -1 means timeout
+            }
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        const q = quizData[currentQuestionIndex];
+        document.getElementById('question-counter').innerText = `题/Q: ${currentQuestionIndex + 1} / 25`;
+        document.getElementById('score-display').innerText = `分数/Score: ${score}`;
+        
+        document.getElementById('question-zh').innerText = q.zh;
+        document.getElementById('question-en').innerText = q.en;
+        
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(index);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById('explanation-box').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        startTimer();
+    }
+
+    function checkAnswer(selectedIndex) {
+        clearInterval(timerInterval);
+        const q = quizData[currentQuestionIndex];
+        const btns = document.querySelectorAll('.option-btn');
+        const expBox = document.getElementById('explanation-box');
+        
+        btns.forEach(btn => btn.disabled = true);
+
+        let isCorrect = selectedIndex === q.answer;
+
+        if (isCorrect) {
+            score += 4;
+            btns[selectedIndex].classList.add('correct');
+            expBox.className = 'explanation-correct';
+            expBox.innerHTML = `<strong>✔️ 答对了！ Correct!</strong><br><br>${q.expZh}<br><em>${q.expEn}</em>`;
+        } else {
+            if(selectedIndex >= 0) btns[selectedIndex].classList.add('wrong');
+            btns[q.answer].classList.add('correct'); 
+            
+            expBox.className = 'explanation-wrong';
+            let title = selectedIndex === -1 ? "⏰ 时间到！ Time's Up!" : "❌ 答错了！ Wrong!";
+            expBox.innerHTML = `<strong>${title}</strong><br><br>${q.expZh}<br><em>${q.expEn}</em>`;
+        }
+
+        document.getElementById('score-display').innerText = `分数/Score: ${score}`;
+        expBox.style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        quizScreen.style.display = 'none';
+        scoreScreen.style.display = 'block';
+        document.getElementById('final-score').innerText = score;
+        
+        let grade = 'E';
+        let msg = '持续加油，永不放弃！<br>Keep trying, never give up!';
+        
+        if (score > 84) { 
+            grade = 'A'; 
+            msg = '太棒了，你是科学小达人！<br>Excellent job!'; 
+        } else if (score > 68) { 
+            grade = 'B'; 
+            msg = '做得很不错，继续保持！<br>Good job!'; 
+        } else if (score > 52) { 
+            grade = 'C'; 
+            msg = '及格了，下次可以争取更高分！<br>Not bad!'; 
+        } else if (score > 36) { 
+            grade = 'D'; 
+            msg = '要多复习课本知识哦！<br>Needs more review!'; 
+        }
+        
+        const gradeEl = document.getElementById('final-grade');
+        gradeEl.innerText = grade;
+        document.getElementById('grade-message').innerHTML = msg;
+    }
+
+    function goToForm() {
+        // 跳转到老师指定的 Google Form
+        window.location.href = "https://forms.gle/KNyAZoMwh5NwaNHq8";
+    }
+</script>
+
+</body>
+</html>

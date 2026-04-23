@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学技能挑战赛 | Science Skills Challenge</title>
+    <style>
+        :root {
+            --primary: #1A73E8;
+            --background: #F0F4F8;
+            --text-dark: #202124;
+            --white: #FFFFFF;
+            --correct: #34A853;
+            --wrong: #EA4335;
+            --gray: #DADCE0;
+            --image-bg: #E8F0FE;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            background-color: var(--white);
+            max-width: 600px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 25px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--gray);
+        }
+
+        #timer {
+            color: var(--wrong);
+            background: #FCE8E6;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .image-container {
+            background-color: var(--image-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 65px; /* Large emoji size to act as images */
+            line-height: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .question-box {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: var(--white);
+            border: 2px solid var(--primary);
+            color: var(--text-dark);
+            padding: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #e8f0fe;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct);
+            border-color: var(--correct);
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(52, 168, 83, 0.3);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            border-color: var(--wrong);
+            color: var(--white);
+            box-shadow: 0 4px 10px rgba(234, 67, 53, 0.3);
+        }
+
+        #explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #FFF8E1;
+            border-left: 6px solid #FFC107;
+            text-align: left;
+            font-size: 16px;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+
+        .control-btn {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3);
+        }
+
+        .control-btn:hover {
+            background-color: #1557b0;
+        }
+
+        #result-screen, #game-screen {
+            display: none;
+        }
+
+        .grade {
+            font-size: 70px;
+            font-weight: 900;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-link {
+            display: block;
+            margin-top: 25px;
+            background-color: #34A853;
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(52, 168, 83, 0.3);
+        }
+        
+        .form-link:hover {
+            background-color: #2b8a44;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <div id="start-screen">
+        <div style="font-size: 80px; margin-bottom: 20px;">🐸🚀🔬</div>
+        <h1>科学技能挑战赛<br>Science Skills Challenge</h1>
+        <p style="font-size: 16px; color: #555;">
+            一共 25 题，每题 15 秒倒计时。<br>
+            附带图片提示帮助理解题目。<br>
+            完成测验后可查看总分与等级报告。<br><br>
+            25 questions, 15s each.<br>Visual hints included. View your final grade at the end.
+        </p>
+        <button class="control-btn" onclick="startGame()">开始游戏 / Start Game</button>
+    </div>
+
+    <div id="game-screen">
+        <div class="header-info">
+            <span id="question-counter">Q: 1/25</span>
+            <span id="timer">15s</span>
+        </div>
+        
+        <div id="question-image" class="image-container"></div>
+
+        <div id="question-text" class="question-box"></div>
+        <div id="options-area" class="options-container"></div>
+        <div id="explanation-box"></div>
+        <button id="next-btn" class="control-btn" style="display: none;" onclick="nextQuestion()">下一题 / Next Question</button>
+    </div>
+
+    <div id="result-screen">
+        <div style="font-size: 80px; margin-bottom: 10px;">🏆</div>
+        <h1>测验完成！<br>Quiz Completed!</h1>
+        <p style="font-size: 20px;">你的总分 / Your Score:</p>
+        <h2 style="font-size: 45px; color: var(--primary); margin: 5px 0;"><span id="final-score">0</span> / 100</h2>
+        <p style="font-size: 18px; margin-top: 15px;">你的等级 / Your Grade:</p>
+        <div id="final-grade" class="grade">A</div>
+        <p id="encouragement" style="font-size: 16px; font-weight: bold; color: #555;"></p>
+        
+        <a href="https://forms.gle/PAWWEfSbGqJM1fik7" target="_blank" class="form-link">
+            填写分数记录<br><span style="font-size: 14px; font-weight: normal;">持续加油，永不放弃！<br>(Click to log your score)</span>
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // 题目数据：加入了 'img' 属性作为视觉化辅助
+    const questions = [
+        {
+            img: "🤔💬🐸",
+            q: "在进行跳跃的青蛙实验前，第一步应该做什么？<br>What is the first step before conducting the jumping frog experiment?",
+            opts: [
+                { t: "列出变数 / List the variables", c: false },
+                { t: "作出假设 / Make a hypothesis", c: true },
+                { t: "书写报告 / Write a report", c: false }
+            ],
+            exp: "科学探究的第一步是确认要探讨的问题并作出假设。<br>The first step in scientific inquiry is to identify the problem and make a hypothesis."
+        },
+        {
+            img: "🐸 ⭕📏",
+            q: "什么因素会影响青蛙模型跳跃的远近？<br>What factor affects how far the frog model jumps?",
+            opts: [
+                { t: "塑料圈的大小 / Size of the plastic ring", c: true },
+                { t: "竹签的长度 / Length of the bamboo stick", c: false },
+                { t: "盒子的形状 / Shape of the box", c: false }
+            ],
+            exp: "实验探讨的是塑料圈尺寸的改变如何影响跳跃的距离。<br>The experiment investigates how changing the plastic ring size affects jump distance."
+        },
+        {
+            img: "🐸 💨 🎯",
+            q: "在这个实验中，青蛙模型跳跃的远近是什么变数？<br>What type of variable is the jumping distance of the frog model?",
+            opts: [
+                { t: "操纵性变数 / Manipulated variable", c: false },
+                { t: "反应性变数 / Responding variable", c: true },
+                { t: "固定性变数 / Constant variable", c: false }
+            ],
+            exp: "跳跃的距离是我们通过实验观察和测量的结果（反应）。<br>The jumping distance is the result we observe and measure from the experiment."
+        },
+        {
+            img: "🐸 = 🐸",
+            q: "在这个青蛙实验中，必须固定不变的事项（固定性变数）是什么？<br>What must be kept constant (constant variable) in this frog experiment?",
+            opts: [
+                { t: "塑料圈的大小 / Size of the plastic ring", c: false },
+                { t: "青蛙模型跳跃的距离 / Jump distance", c: false },
+                { t: "青蛙模型的种类 / Type of frog model", c: true }
+            ],
+            exp: "为了确保实验公平，使用的青蛙模型必须是一样的。<br>To ensure a fair test, the type of frog model used must remain the same."
+        },
+        {
+            img: "👀 📏 🐸",
+            q: "青蛙模型跳跃远近的操作性定义是什么？<br>What is the operational definition for the jump distance of the frog model?",
+            opts: [
+                { t: "以青蛙模型跳跃的距离来确定 / Determine by the distance jumped", c: true },
+                { t: "以青蛙的重量来确定 / Determine by the weight of the frog", c: false },
+                { t: "以塑料圈的颜色来确定 / Determine by the color of the plastic ring", c: false }
+            ],
+            exp: "操作性定义是通过可测量的具体行动来定义的，即测量它跳跃的距离。<br>Operational definition is defined by measurable actions, which is measuring the jump distance."
+        },
+        {
+            img: "✂️ 🟦 ➡️ ⭕",
+            q: "制作大小不同的塑料圈时，需要剪出什么形状的塑料片？<br>What shape of plastic sheet needs to be cut to make different sized rings?",
+            opts: [
+                { t: "圆形 / Circle", c: false },
+                { t: "长方形 / Rectangle", c: true },
+                { t: "三角形 / Triangle", c: false }
+            ],
+            exp: "根据步骤，需在塑料片上画出长方形并剪出，穿洞制成塑料圈。<br>According to the steps, rectangles are drawn, cut out, and pierced to make rings."
+        },
+        {
+            img: "🟢小 ➡️ 🐸💨远",
+            q: "塑料圈越小，青蛙模型跳得...<br>The smaller the plastic ring, the ___ the frog model jumps.",
+            opts: [
+                { t: "越近 / Nearer", c: false },
+                { t: "越远 / Further", c: true },
+                { t: "不改变 / Unchanged", c: false }
+            ],
+            exp: "假设指出塑料圈越小，产生的弹力或机制让模型跳得越远。<br>The hypothesis states the smaller ring creates a mechanism allowing it to jump further."
+        },
+        {
+            img: "📊 🧐 💡",
+            q: "实验记录观察结果后，接着须进行哪项科学程序技能？<br>After recording observations, which science process skill is applied next?",
+            opts: [
+                { t: "诠释资料 / Interpret data", c: true },
+                { t: "准备材料 / Prepare materials", c: false },
+                { t: "作出假设 / Make a hypothesis", c: false }
+            ],
+            exp: "记录数据后，我们需要分析和诠释资料来理解结果。<br>After recording data, we need to analyze and interpret the data to understand the outcome."
+        },
+        {
+            img: "📈 ➡️ 🤔",
+            q: "通过观察结果并发现趋势后，我们需要作出什么？<br>After observing results and finding a trend, what do we need to make?",
+            opts: [
+                { t: "操作性定义 / Operational definition", c: false },
+                { t: "推断 / Inference", c: true },
+                { t: "变数 / Variables", c: false }
+            ],
+            exp: "发现结果后，我们会为观察到的现象提供解释，即推断。<br>We provide an explanation for the observation, which is making an inference."
+        },
+        {
+            img: "📝 ✔️ 🏁",
+            q: "根据实验得出的结果，最后我们需要做什么来结束实验？<br>Based on the experiment's results, what is the final step to conclude?",
+            opts: [
+                { t: "书写一份完整的实验报告 / Write a full experiment report", c: true },
+                { t: "更改实验工具 / Change experiment tools", c: false },
+                { t: "重新作出假设 / Make a new hypothesis", c: false }
+            ],
+            exp: "实验完成后，书写报告以便记录和沟通发现。<br>Writing a report records and communicates findings after finishing the experiment."
+        },
+        {
+            img: "👧 👦 🎢",
+            q: "在“荡秋千”实验中，探讨的问题是什么？<br>What is the problem investigated in the swing/pendulum experiment?",
+            opts: [
+                { t: "什么因素影响秋千的快慢？ / What affects the speed of the swing?", c: true },
+                { t: "秋千可以承受多重？ / How much weight can the swing hold?", c: false },
+                { t: "秋千的材料是什么？ / What is the swing made of?", c: false }
+            ],
+            exp: "该实验重点在于探讨影响摆动（秋千）快慢的因素。<br>The experiment focuses on the factors affecting how fast the pendulum swings."
+        },
+        {
+            img: "🪢 长短 ❓",
+            q: "荡秋千实验中，要检验的假设与什么有关？<br>In the swing experiment, what is the hypothesis testing?",
+            opts: [
+                { t: "绳子的粗细 / Thickness of the rope", c: false },
+                { t: "绳子的颜色 / Color of the rope", c: false },
+                { t: "绳子的长短 / Length of the rope", c: true }
+            ],
+            exp: "假设提到探讨“绳子较长的秋千会荡得比较快吗？”<br>The hypothesis asks 'Will a swing with a longer rope swing faster?'."
+        },
+        {
+            img: "⏱️ 🔄 10x",
+            q: "如何为摆的快慢作出操作性定义？<br>How do we operationally define the speed of the pendulum?",
+            opts: [
+                { t: "记录完成来回10次摆动的时间 / Record time taken for 10 complete swings", c: true },
+                { t: "测量绳子的长度 / Measure the length of rope", c: false },
+                { t: "观察摆动的角度 / Observe the angle of swing", c: false }
+            ],
+            exp: "摆的快慢可以通过测量它完成固定次数（如10次）摆动所需的时间来确定。<br>The speed is determined by timing how long it takes to complete a fixed number of swings."
+        },
+        {
+            img: "⏳ 📉 🛑",
+            q: "随着时间的流逝，秋千（摆）的摆动次数会有什么变化？<br>As time passes, what happens to the number of swings?",
+            opts: [
+                { t: "逐渐增加 / Gradually increases", c: false },
+                { t: "保持不变 / Remains the same", c: false },
+                { t: "逐渐下降直至停止 / Gradually decreases until it stops", c: true }
+            ],
+            exp: "因为空气阻力的关系，摆动会慢慢变缓直到停下。<br>Due to resistance, the swinging will slowly decrease until it stops completely."
+        },
+        {
+            img: "📋 ✏️",
+            q: "记录观察结果时，设计什么工具最为合适？<br>What tool is most suitable to design for recording observations?",
+            opts: [
+                { t: "统计图 / Bar chart", c: false },
+                { t: "表格 / Table", c: true },
+                { t: "长方形 / Rectangle", c: false }
+            ],
+            exp: "实验步骤明确提到设计一个表格来记录不同变量下的观察结果，最清晰。<br>The steps mention designing a table to record observations systematically."
+        },
+        {
+            img: "🥛 🧴 🔍",
+            q: "在“物质分一分”活动中，学生需要列出物质的什么来分类？<br>In the substance classification activity, what must students list to classify?",
+            opts: [
+                { t: "名称和价格 / Name and price", c: false },
+                { t: "共同点和不同点 / Similarities and differences", c: true },
+                { t: "重量和大小 / Weight and size", c: false }
+            ],
+            exp: "科学分类法要求根据物质的共同特征和相异特征来进行分类。<br>Scientific classification requires grouping based on shared and differing characteristics."
+        },
+        {
+            img: "🧪 🧊 💧",
+            q: "活动中提到了哪种方法可以将酸奶、洗衣液等物质分类？<br>What method was mentioned to classify substances like yogurt and detergent?",
+            opts: [
+                { t: "根据化学性质或形态分类 / Classify by chemical properties or states", c: true },
+                { t: "根据出产日期分类 / Classify by production date", c: false },
+                { t: "根据颜色深浅分类 / Classify by color shade", c: false }
+            ],
+            exp: "可以根据物质的化学性质（酸碱性）或形态（固体、液体、气体）分类。<br>The guide suggests classifying by chemical properties (acidity) or states of matter."
+        },
+        {
+            img: "🌳 ➡️ 💡",
+            q: "将物质分类并绘制分类图后，最后要作出什么？<br>After classifying and drawing a classification map, what should be made lastly?",
+            opts: [
+                { t: "结论 / Conclusion", c: true },
+                { t: "假设 / Hypothesis", c: false },
+                { t: "变数 / Variables", c: false }
+            ],
+            exp: "活动结束时，应根据分类图的结果进行总结并作出结论。<br>At the end of the activity, a conclusion is made based on the classification results."
+        },
+        {
+            img: "🥣 ➕ 🧂 ➡️ 🍞",
+            q: "制作面团时，加入什么能让面团变大？<br>When making dough, adding what makes it become bigger?",
+            opts: [
+                { t: "洗衣液 / Detergent", c: false },
+                { t: "矿泉水 / Mineral water", c: false },
+                { t: "发酵粉 / Yeast", c: true }
+            ],
+            exp: "图中人物提到，加入发酵粉是促使面团膨胀变大的原因。<br>The character states that adding yeast is what causes the dough to expand and grow."
+        },
+        {
+            img: "🧂➕➕ ➡️ 🍞❓",
+            q: "针对面团实验，图中提出了什么疑问（可作假设）？<br>For the dough experiment, what question was raised (to form a hypothesis)?",
+            opts: [
+                { t: "发酵粉的颜色越深面团越软吗？ / Does darker yeast make softer dough?", c: false },
+                { t: "发酵粉越多面团越大吗？ / Does more yeast make a bigger dough?", c: true },
+                { t: "搅拌越久面团越小吗？ / Does longer stirring make smaller dough?", c: false }
+            ],
+            exp: "人物思考并发问探讨发酵粉的分量与面团膨胀大小之间的关系。<br>The character wonders about the relationship between the amount of yeast and dough size."
+        },
+        {
+            img: "🚀 🛠️ 📐",
+            q: "水火箭活动应用了什么设计过程？<br>What design process is applied in the water rocket activity?",
+            opts: [
+                { t: "工程设计过程 / Engineering design process", c: true },
+                { t: "数学运算过程 / Mathematical calculation process", c: false },
+                { t: "艺术创作过程 / Art creation process", c: false }
+            ],
+            exp: "老师建议使用工程设计过程（思考、制作、沟通、改良）来进行活动。<br>The guide suggests using the engineering design process (think, build, communicate, improve)."
+        },
+        {
+            img: "💭 🛠️ 🗣️ 🔧",
+            q: "工程设计过程包括了思考、制作、沟通和什么？<br>The engineering design process includes thinking, making, communicating, and...",
+            opts: [
+                { t: "丢弃 / Discarding", c: false },
+                { t: "改良 / Improving", c: true },
+                { t: "猜测 / Guessing", c: false }
+            ],
+            exp: "测试后，如果发现不足就需要“改良”来提升作品表现。<br>After testing, if there are flaws, 'improving' is necessary to enhance the design."
+        },
+        {
+            img: "🚀 🤔 ➡️ 🧪",
+            q: "我们要如何解开水火箭飞得更高的疑问？<br>How do we solve the question about making the water rocket fly higher?",
+            opts: [
+                { t: "一起进行实验 / Conduct an experiment together", c: true },
+                { t: "只用眼睛观察 / Observe with eyes only", c: false },
+                { t: "放弃制作 / Give up making it", c: false }
+            ],
+            exp: "遇到科学疑问，最好的方法就是动手进行实验来验证。<br>When facing scientific questions, the best way is to conduct experiments to verify."
+        },
+        {
+            img: "📏 ❓ 📐",
+            q: "当实验做到一半发现距离很难量，应应用什么测量工具？<br>If measuring distance is hard in the experiment, what should be used?",
+            opts: [
+                { t: "标准或非标准的测量工具 / Standard or non-standard measuring tools", c: true },
+                { t: "放大镜 / Magnifying glass", c: false },
+                { t: "温度计 / Thermometer", c: false }
+            ],
+            exp: "距离的测量可以灵活应用标准（如尺）或非标准（如脚步、回形针）的测量工具来完成。<br>Distance can be measured using standard (like rulers) or non-standard tools."
+        },
+        {
+            img: "📄 🗣️ 🧑‍🤝‍🧑",
+            q: "完成所有实验和报告后，你可以把报告与谁分享沟通？<br>After completing reports, who can you share and communicate them with?",
+            opts: [
+                { t: "陌生人 / Strangers", c: false },
+                { t: "同学 / Classmates", c: true },
+                { t: "把它丢掉 / Throw it away", c: false }
+            ],
+            exp: "科学是一项需要沟通的技能，实验报告应与同学分享和讨论。<br>Science involves communication; reports should be shared and discussed with classmates."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+    let timeLeft = 15;
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        timeLeft = 15;
+        document.getElementById('timer').innerText = `${timeLeft}s`;
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('explanation-box').style.display = 'none';
+        
+        const qData = questions[currentQuestionIndex];
+        document.getElementById('question-counter').innerText = `Q: ${currentQuestionIndex + 1}/${questions.length}`;
+        
+        // Load Image / Icon
+        document.getElementById('question-image').innerHTML = qData.img;
+        // Load Question Text
+        document.getElementById('question-text').innerHTML = qData.q;
+
+        const optionsArea = document.getElementById('options-area');
+        optionsArea.innerHTML = '';
+        
+        qData.opts.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = opt.t;
+            btn.onclick = () => selectOption(btn, opt.c, qData.exp);
+            optionsArea.appendChild(btn);
+        });
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = `${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeOut(qData.exp);
+            }
+        }, 1000);
+    }
+
+    function selectOption(btn, isCorrect, exp) {
+        clearInterval(timerInterval);
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        // 选对选错变色，不提示正确答案
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score += 4;
+        } else {
+            btn.classList.add('wrong');
+        }
+
+        showExplanation(exp);
+    }
+
+    function handleTimeOut(exp) {
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+        showExplanation(exp + "<br><em style='color:red;'>(时间到 / Time's up)</em>");
+    }
+
+    function showExplanation(exp) {
+        const expBox = document.getElementById('explanation-box');
+        expBox.innerHTML = `<strong>💡 讲解 / Explanation:</strong><br>${exp}`;
+        expBox.style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        document.getElementById('final-score').innerText = score;
+
+        // 计算等级
+        let grade = '';
+        if (score > 84) grade = 'A';
+        else if (score > 68) grade = 'B';
+        else if (score > 52) grade = 'C';
+        else if (score > 36) grade = 'D';
+        else grade = 'E';
+
+        const gradeColors = { 'A': '#34A853', 'B': '#1A73E8', 'C': '#FBBC05', 'D': '#F29900', 'E': '#EA4335' };
+        const gradeElem = document.getElementById('final-grade');
+        gradeElem.innerText = grade;
+        gradeElem.style.color = gradeColors[grade];
+
+        document.getElementById('encouragement').innerText = "无论结果如何，老师都为你感到骄傲！\nKeep up the great effort!";
+    }
+</script>
+</body>
+</html>

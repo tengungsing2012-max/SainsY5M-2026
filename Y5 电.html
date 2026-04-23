@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五年级科学：电 / Year 5 Science: Electricity</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --danger: #f44336;
+            --light: #f4f4f9;
+            --dark: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            color: var(--dark);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: #fff;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        h1, h2, h3 { text-align: center; }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .timer { color: var(--danger); font-size: 1.2em;}
+        .question-container { text-align: center; margin-bottom: 20px; }
+        .question-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #eee;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+        .question-text {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .question-en {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-btn {
+            background-color: var(--light);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: left;
+        }
+        .option-btn:hover { background-color: #e0e0e0; }
+        .option-btn:disabled { cursor: not-allowed; }
+        
+        .correct-bg { background-color: #c8e6c9 !important; border-color: #4CAF50 !important; color: #1b5e20; }
+        .wrong-bg { background-color: #ffcdd2 !important; border-color: #f44336 !important; color: #b71c1c; }
+        
+        .feedback-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            display: none;
+            text-align: left;
+        }
+        .next-btn {
+            margin-top: 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+        }
+        .next-btn:hover { background-color: #0b7dda; }
+        
+        .result-screen { display: none; text-align: center; }
+        .grade { font-size: 4em; font-weight: bold; margin: 10px 0; }
+        .link-btn {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .start-screen { text-align: center; }
+        .start-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen" class="start-screen">
+        <h2>五年级科学：电<br>Year 5 Science: Electricity</h2>
+        <p>⭐ 共25题 (25 Questions) <br>⭐ 每题4分 (4 Points each) <br>⭐ 限时15秒 (15s per question)</p>
+        <button class="start-btn" onclick="startGame()">开始测试 / Start Quiz</button>
+    </div>
+
+    <div id="quiz-screen" style="display: none;">
+        <div class="header-info">
+            <div>题数 / Q: <span id="q-number">1</span>/25</div>
+            <div>分数 / Score: <span id="score-display">0</span></div>
+            <div class="timer">⏳ <span id="time-left">15</span>s</div>
+        </div>
+        
+        <div class="question-container">
+            <div id="q-image" class="question-image">🔋</div>
+            <div id="q-text-zh" class="question-text">问题</div>
+            <div id="q-text-en" class="question-en">Question</div>
+        </div>
+        
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <div id="feedback" class="feedback-box">
+            <strong id="feedback-title"></strong><br>
+            <span id="feedback-text"></span>
+        </div>
+
+        <button id="next-btn" class="next-btn" onclick="nextQuestion()">下一题 / Next</button>
+    </div>
+
+    <div id="result-screen" class="result-screen">
+        <h2>测试完成！<br>Quiz Completed!</h2>
+        <h3>你的总分 / Your Score: <span id="final-score">0</span> / 100</h3>
+        <div id="grade-display" class="grade">A</div>
+        <p id="motivational-message" style="font-size: 1.2em; color: var(--secondary); font-weight: bold;"></p>
+        <p>无论结果如何，老师都为你感到骄傲！<br>Keep up the great effort! 持续加油，永不放弃。</p>
+        
+        <a href="https://forms.gle/HDMceVj1hawHRHzH7" target="_blank" class="link-btn">
+            点击这里提交你的分数<br>Click Here to Submit Your Score
+        </a>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            img: "🔋",
+            q_zh: "计算器能使用哪两种电源来操作？",
+            q_en: "Which two power sources can a calculator use to operate?",
+            options: [
+                { text: "干电池或太阳能电池 (Dry cell or solar cell)", correct: true },
+                { text: "蓄电池或发电机 (Accumulator or generator)", correct: false },
+                { text: "干电池或氢燃料电池 (Dry cell or hydrogen fuel cell)", correct: false },
+                { text: "太阳能电池或发电站 (Solar cell or power station)", correct: false }
+            ],
+            explanation: "计算器通常只需少量的电能，常见电源是干电池和太阳能电池。 / Calculators need little energy and usually use dry cells or solar cells."
+        },
+        {
+            img: "🚗",
+            q_zh: "大部分交通工具（如汽车）都使用什么电源？",
+            q_en: "What power source do most vehicles (like cars) use?",
+            options: [
+                { text: "干电池 (Dry cell)", correct: false },
+                { text: "蓄电池 (Accumulator)", correct: true },
+                { text: "太阳能电池 (Solar cell)", correct: false },
+                { text: "小型发电机 (Dynamo)", correct: false }
+            ],
+            explanation: "大部分交通工具都使用蓄电池（汽车电池）来启动引擎和提供车内电力。 / Most vehicles use accumulators (car batteries) to start engines and provide power."
+        },
+        {
+            img: "🚲",
+            q_zh: "当自行车的车轮转动时，会带动什么产生电流使车灯发亮？",
+            q_en: "When a bicycle wheel turns, what does it drive to generate current for the light?",
+            options: [
+                { text: "蓄电池 (Accumulator)", correct: false },
+                { text: "太阳能电池 (Solar cell)", correct: false },
+                { text: "小型发电机 (Dynamo)", correct: true },
+                { text: "氢燃料电池 (Hydrogen fuel cell)", correct: false }
+            ],
+            explanation: "自行车上应用的是小型发电机，它通过动能转化为电能。 / Bicycles use a dynamo that converts kinetic energy into electrical energy."
+        },
+        {
+            img: "🛰️",
+            q_zh: "哪一种电源适合用在人造卫星上？",
+            q_en: "Which power source is suitable for artificial satellites?",
+            options: [
+                { text: "干电池 (Dry cell)", correct: false },
+                { text: "发电站 (Power station)", correct: false },
+                { text: "氢燃料电池 (Hydrogen fuel cell)", correct: false },
+                { text: "太阳能电池 (Solar cell)", correct: true }
+            ],
+            explanation: "人造卫星在太空中运作，最适合依靠太阳能电池收集阳光发电。 / Satellites operate in space and use solar cells to gather energy from the sun."
+        },
+        {
+            img: "💧",
+            q_zh: "哪种电源属于绿色能源之一，不会污染环境且适用于航空领域？",
+            q_en: "Which power source is a green energy that does not pollute and is used in aviation?",
+            options: [
+                { text: "蓄电池 (Accumulator)", correct: false },
+                { text: "氢燃料电池 (Hydrogen fuel cell)", correct: true },
+                { text: "发电机 (Generator)", correct: false },
+                { text: "干电池 (Dry cell)", correct: false }
+            ],
+            explanation: "氢燃料电池通过化学反应产生电能，产物通常只有水，不会污染环境。 / Hydrogen fuel cells generate electricity via chemical reactions, producing no pollution."
+        },
+        {
+            img: "💡",
+            q_zh: "在串联电路中，灯泡是如何连接的？",
+            q_en: "How are bulbs connected in a series circuit?",
+            options: [
+                { text: "并列连接 (Connected in parallel)", correct: false },
+                { text: "依次连接 (Connected sequentially / in a row)", correct: true },
+                { text: "随机连接 (Connected randomly)", correct: false },
+                { text: "不连接 (Not connected)", correct: false }
+            ],
+            explanation: "串联电路的电流只有一条通路，灯泡是一颗接一颗依次连接的。 / In a series circuit, current has only one path, so bulbs are connected sequentially."
+        },
+        {
+            img: "🚥",
+            q_zh: "如果想要灯泡比较亮，应该选择哪种电路排列方式（假设电池数量相同）？",
+            q_en: "If you want brighter bulbs, which circuit arrangement should you choose (assuming same battery count)?",
+            options: [
+                { text: "串联电路 (Series circuit)", correct: false },
+                { text: "并联电路 (Parallel circuit)", correct: true },
+                { text: "断路 (Open circuit)", correct: false },
+                { text: "短路 (Short circuit)", correct: false }
+            ],
+            explanation: "并联电路中每个灯泡都能得到干电池的总电压，因此比串联电路亮。 / In a parallel circuit, each branch gets the full voltage from the batteries, making bulbs brighter."
+        },
+        {
+            img: "⚡",
+            q_zh: "如果在串联电路中增加灯泡的数量，灯泡的亮度会有什么改变？",
+            q_en: "What happens to the brightness of bulbs if more bulbs are added to a series circuit?",
+            options: [
+                { text: "灯泡亮度不变 (Brightness remains unchanged)", correct: false },
+                { text: "灯泡亮度增加 (Brightness increases)", correct: false },
+                { text: "灯泡亮度减弱 (Brightness decreases)", correct: true },
+                { text: "灯泡会烧坏 (Bulbs will blow)", correct: false }
+            ],
+            explanation: "在串联电路中，灯泡越多，它们必须分享的电能就越少，所以会变暗。 / In a series circuit, electrical energy is shared among all bulbs; more bulbs mean less brightness."
+        },
+        {
+            img: "⚡",
+            q_zh: "在并联电路中增加灯泡的数量，灯泡的亮度会怎样？",
+            q_en: "What happens to the brightness if more bulbs are added to a parallel circuit?",
+            options: [
+                { text: "保持不变 (Remains unchanged)", correct: true },
+                { text: "变得更亮 (Becomes brighter)", correct: false },
+                { text: "变得更暗 (Becomes dimmer)", correct: false },
+                { text: "全部熄灭 (All turn off)", correct: false }
+            ],
+            explanation: "并联电路有不同的分支通路，增加分支不影响其他分支灯泡获取的电量。 / Parallel circuits have independent branches, so adding more bulbs does not affect the brightness of existing ones."
+        },
+        {
+            img: "🔋🔋",
+            q_zh: "无论是串联还是并联电路，增加干电池的数量会导致什么结果？",
+            q_en: "In either a series or parallel circuit, what is the result of adding more dry cells?",
+            options: [
+                { text: "灯泡亮度减弱 (Bulb brightness decreases)", correct: false },
+                { text: "灯泡亮度不变 (Bulb brightness remains unchanged)", correct: false },
+                { text: "灯泡亮度增加 (Bulb brightness increases)", correct: true },
+                { text: "电路会断开 (Circuit will break)", correct: false }
+            ],
+            explanation: "增加干电池会加强电路中的电流，从而使灯泡变得更亮。 / Adding more dry cells increases the current, making the bulbs brighter."
+        },
+        {
+            img: "🔌",
+            q_zh: "在串联电路中，当其中一个开关被拉上（断开）时，灯泡会怎样？",
+            q_en: "In a series circuit, when one switch is opened (turned off), what happens to the bulbs?",
+            options: [
+                { text: "只有该开关控制的灯泡熄灭 (Only the bulb controlled by the switch turns off)", correct: false },
+                { text: "全部灯泡熄灭 (All bulbs turn off)", correct: true },
+                { text: "所有灯泡变得更亮 (All bulbs become brighter)", correct: false },
+                { text: "只有最远的灯泡熄灭 (Only the furthest bulb turns off)", correct: false }
+            ],
+            explanation: "串联电路只有一条通路，一旦通路中断，整个电路就没有电流流过了。 / A series circuit has only one path; if it's broken at any point, all current stops."
+        },
+        {
+            img: "🔌",
+            q_zh: "在并联电路中，拉上（断开）其中一条分支的开关，其他分支的灯泡会怎样？",
+            q_en: "In a parallel circuit, if you open (turn off) a switch in one branch, what happens to bulbs in other branches?",
+            options: [
+                { text: "全部熄灭 (All turn off)", correct: false },
+                { text: "变得更暗 (Become dimmer)", correct: false },
+                { text: "依然会发亮 (They will still light up)", correct: true },
+                { text: "会发生短路 (A short circuit will occur)", correct: false }
+            ],
+            explanation: "并联电路的电流有几条各自独立的通路，断开一条不会影响其他通路的运作。 / Parallel circuits have independent paths; breaking one does not stop current in others."
+        },
+        {
+            img: "🏠",
+            q_zh: "住家和学校所使用的电路通常是以什么方式连接的？",
+            q_en: "How are the circuits used in homes and schools usually connected?",
+            options: [
+                { text: "串联方式 (Series connection)", correct: false },
+                { text: "并联方式 (Parallel connection)", correct: true },
+                { text: "随机方式 (Random connection)", correct: false },
+                { text: "没有任何连接 (No connection)", correct: false }
+            ],
+            explanation: "住家使用并联电路，这样即使关掉一个电器，其他电器仍然可以正常使用。 / Homes use parallel circuits so that turning off one appliance doesn't turn them all off."
+        },
+        {
+            img: "🎄",
+            q_zh: "多数灯饰（如圣诞树灯饰）的电路是以什么方式连接的？",
+            q_en: "How are the circuits of most decorative lights (like Christmas tree lights) connected?",
+            options: [
+                { text: "并联电路 (Parallel circuit)", correct: false },
+                { text: "串联电路 (Series circuit)", correct: true },
+                { text: "独立电路 (Independent circuit)", correct: false },
+                { text: "混合电路 (Mixed circuit)", correct: false }
+            ],
+            explanation: "灯饰通常使用串联连接，所以其中一个灯泡坏了可能会影响整排灯饰不亮。 / Decorative lights often use series circuits, which is why one broken bulb can turn off the whole string."
+        },
+        {
+            img: "🛡️",
+            q_zh: "什么装置可以在电流过强时自动切断电路，以防止电器损坏或引起火灾？",
+            q_en: "Which device automatically cuts off the circuit when the current is too strong to prevent damage or fire?",
+            options: [
+                { text: "干电池 (Dry cell)", correct: false },
+                { text: "发电机 (Generator)", correct: false },
+                { text: "保险丝 (Fuse)", correct: true },
+                { text: "开关 (Switch)", correct: false }
+            ],
+            explanation: "电路中一般会装置保险丝，当电流过强时，保险丝会熔断从而自动切断电源。 / A fuse is installed to melt and cut the circuit if the current becomes dangerously high."
+        },
+        {
+            img: "💰",
+            q_zh: "以下哪一项不是影响家庭用电量的因素？",
+            q_en: "Which of the following is NOT a factor affecting household electricity consumption?",
+            options: [
+                { text: "电器的种类 (Types of electrical appliances)", correct: false },
+                { text: "电器的颜色 (Color of the electrical appliances)", correct: true },
+                { text: "电器的使用次数 (Frequency of appliance usage)", correct: false },
+                { text: "电器的使用时长 (Duration of appliance usage)", correct: false }
+            ],
+            explanation: "用电量受到电器的种类、功率、使用次数和时间影响，与颜色无关。 / Electricity consumption depends on the type, usage time, and frequency, not the appliance's color."
+        },
+        {
+            img: "⭐",
+            q_zh: "为什么要购买具有“五星节能标志”的电器？",
+            q_en: "Why should we buy appliances with a '5-Star Energy Efficient Label'?",
+            options: [
+                { text: "因为外形更美观 (Because they look more beautiful)", correct: false },
+                { text: "因为可以减少用电量 (Because they can reduce electricity consumption)", correct: true },
+                { text: "因为能产生更大的噪音 (Because they produce more noise)", correct: false },
+                { text: "因为能增加电费 (Because they increase electric bills)", correct: false }
+            ],
+            explanation: "节能电器设计更高效，可以在提供相同服务的情况下减少电能消耗，节省电源。 / Energy-efficient appliances perform the same tasks while consuming less electricity."
+        },
+        {
+            img: "💦",
+            q_zh: "用湿的手触碰电源开关可能会带来什么危险？",
+            q_en: "What danger might occur if you touch a power switch with wet hands?",
+            options: [
+                { text: "会导致触电 (It can cause an electric shock)", correct: true },
+                { text: "会让灯泡变亮 (It makes the bulb brighter)", correct: false },
+                { text: "会让手变干 (It dries your hands)", correct: false },
+                { text: "能省电 (It saves electricity)", correct: false }
+            ],
+            explanation: "水是良好的导电体，湿手碰开关极易导致电流流经人体，造成触电。 / Water conducts electricity well; touching switches with wet hands easily leads to an electric shock."
+        },
+        {
+            img: "🔌",
+            q_zh: "发现电器的电线已损坏且露出里面的铜线，应该怎么做？",
+            q_en: "What should you do if an appliance's wire is damaged and exposes the inner copper wires?",
+            options: [
+                { text: "用胶纸随便贴着继续用 (Just tape it casually and keep using it)", correct: false },
+                { text: "不使用该电器并送去维修 (Stop using the appliance and send it for repair)", correct: true },
+                { text: "用湿布擦拭干净 (Wipe it clean with a wet cloth)", correct: false },
+                { text: "继续使用，没关系 (Keep using it, it doesn't matter)", correct: false }
+            ],
+            explanation: "电线损坏可能会引起漏电或火灾，绝对不能继续使用，必须请专业人员维修。 / Damaged wires can cause leaks or fires; they must be repaired by professionals."
+        },
+        {
+            img: "🔌",
+            q_zh: "为什么不可以在使用电器时让多个插头共用一个插座？",
+            q_en: "Why shouldn't you share multiple plugs on a single electrical socket?",
+            options: [
+                { text: "会导致灯泡更亮 (It makes bulbs brighter)", correct: false },
+                { text: "会造成电流过强而引起火灾 (It causes overloading which can start a fire)", correct: true },
+                { text: "会减少电费 (It reduces electricity bills)", correct: false },
+                { text: "没有任何影响 (It has no effect)", correct: false }
+            ],
+            explanation: "共用插座会导致负荷过大，电线过热，从而可能短路引发火患。 / Overloading a socket draws too much current, causing wires to overheat and potentially start a fire."
+        },
+        {
+            img: "🔌",
+            q_zh: "插入或拔出插头前，正确的做法是什么？",
+            q_en: "What is the correct practice before inserting or removing a plug?",
+            options: [
+                { text: "用水把手弄湿 (Wet your hands with water)", correct: false },
+                { text: "拉扯电线拔出插头 (Pull the wire to remove the plug)", correct: false },
+                { text: "需先关掉电源开关 (Must turn off the power switch first)", correct: true },
+                { text: "开启所有相关电器 (Turn on all related appliances)", correct: false }
+            ],
+            explanation: "为了避免产生电火花和触电的风险，必须先切断电源再插拔插头。 / To avoid sparks and electric shocks, always turn off the switch before handling plugs."
+        },
+        {
+            img: "🪁",
+            q_zh: "为什么在电线杆附近放风筝是非常危险的？",
+            q_en: "Why is it very dangerous to fly a kite near utility poles/power lines?",
+            options: [
+                { text: "风筝会被鸟弄破 (The kite might be broken by birds)", correct: false },
+                { text: "可能会引起住家停电跳闸或造成触电伤亡 (It may cause power outages or fatal electric shocks)", correct: true },
+                { text: "风筝飞不高 (The kite won't fly high)", correct: false },
+                { text: "会浪费电源 (It wastes electrical power)", correct: false }
+            ],
+            explanation: "风筝线若缠绕高压电线，电流可能通过风筝线导向人体，引发严重触电事故。 / If the kite string touches power lines, current can travel down the string and cause fatal shocks."
+        },
+        {
+            img: "📖",
+            q_zh: "使用新买的电器前，第一件该做的事是什么？",
+            q_en: "What is the first thing you should do before using a newly bought electrical appliance?",
+            options: [
+                { text: "立刻插上电源测试 (Plug it in immediately to test)", correct: false },
+                { text: "自行拆开了解内部构造 (Dismantle it to understand the interior)", correct: false },
+                { text: "细读安全使用手册 (Read the safety instruction manual carefully)", correct: true },
+                { text: "用水清洗电器 (Wash the appliance with water)", correct: false }
+            ],
+            explanation: "安全使用手册列明了电器的正确用法和注意事项，细读能避免错误操作引发意外。 / The manual provides safety guidelines to prevent accidents from incorrect usage."
+        },
+        {
+            img: "⚠️",
+            q_zh: "如果发现有人不小心触电了，绝对不能做的是什么？",
+            q_en: "If you find someone accidentally experiencing an electric shock, what must you NEVER do?",
+            options: [
+                { text: "马上切断总电源 (Immediately turn off the main power supply)", correct: false },
+                { text: "直接用手拉开触电者 (Directly pull the victim away with your hands)", correct: true },
+                { text: "用绝缘体（如干木棍）隔开带电体 (Use an insulator like a wooden stick to push the wire away)", correct: false },
+                { text: "立刻寻求大人的帮助并呼叫救护车 (Seek adult help immediately and call an ambulance)", correct: false }
+            ],
+            explanation: "人体是导电体，直接用手拉触电者会导致自己也触电。应该先切断电源或使用绝缘体。 / The human body conducts electricity; touching the victim directly will shock you too."
+        },
+        {
+            img: "💡",
+            q_zh: "以下哪一种做法能达到节省电源的目的？",
+            q_en: "Which of the following practices helps to save electrical energy?",
+            options: [
+                { text: "离开房间时不关灯 (Leaving lights on when exiting a room)", correct: false },
+                { text: "白天也开着所有灯 (Keeping all lights on during the day)", correct: false },
+                { text: "长时间搁置操作中的熨斗 (Leaving an operating iron idle for a long time)", correct: false },
+                { text: "关掉不使用的电器和灯 (Turning off unused electrical appliances and lights)", correct: true }
+            ],
+            explanation: "养成随手关掉不使用的电器的习惯，是减少用电量和保护地球资源的最佳方法。 / Turning off unused appliances is the best way to reduce consumption and conserve resources."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timerInterval;
+    let timeLeft = 15;
+    let answered = false;
+
+    function startGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        answered = false;
+        timeLeft = 15;
+        document.getElementById('time-left').innerText = timeLeft;
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        
+        const q = questions[currentQuestionIndex];
+        document.getElementById('q-number').innerText = currentQuestionIndex + 1;
+        document.getElementById('q-image').innerText = q.img;
+        document.getElementById('q-text-zh').innerText = q.q_zh;
+        document.getElementById('q-text-en').innerText = q.q_en;
+
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => selectOption(btn, opt.correct, q.explanation);
+            optionsContainer.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('time-left').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timeOut();
+            }
+        }, 1000);
+    }
+
+    function selectOption(btn, isCorrect, explanation) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerInterval);
+        
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        if (isCorrect) {
+            btn.classList.add('correct-bg');
+            score += 4;
+            document.getElementById('score-display').innerText = score;
+            showFeedback(true, explanation);
+        } else {
+            btn.classList.add('wrong-bg');
+            showFeedback(false, explanation);
+        }
+        
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function timeOut() {
+        if (answered) return;
+        answered = true;
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+        
+        showFeedback(false, questions[currentQuestionIndex].explanation);
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function showFeedback(isCorrect, explanation) {
+        const feedbackBox = document.getElementById('feedback');
+        const title = document.getElementById('feedback-title');
+        const text = document.getElementById('feedback-text');
+        
+        feedbackBox.style.display = 'block';
+        if (isCorrect) {
+            feedbackBox.style.backgroundColor = '#c8e6c9';
+            feedbackBox.style.borderColor = '#4CAF50';
+            feedbackBox.style.color = '#1b5e20';
+            title.innerText = "✅ 答对了！ (Correct!)";
+        } else {
+            feedbackBox.style.backgroundColor = '#ffcdd2';
+            feedbackBox.style.borderColor = '#f44336';
+            feedbackBox.style.color = '#b71c1c';
+            title.innerText = "❌ 答错了 / 超时 (Wrong / Time Out)";
+        }
+        
+        // As requested, explain concept without explicitly pointing out the exact letter of the correct answer.
+        text.innerText = explanation; 
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function endGame() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        document.getElementById('final-score').innerText = score;
+        
+        let grade = 'E';
+        if (score >= 85) grade = 'A';
+        else if (score >= 69) grade = 'B';
+        else if (score >= 53) grade = 'C';
+        else if (score >= 37) grade = 'D';
+        else grade = 'E';
+        
+        const gradeDisplay = document.getElementById('grade-display');
+        gradeDisplay.innerText = grade;
+        
+        if (grade === 'A' || grade === 'B') gradeDisplay.style.color = 'var(--primary)';
+        else if (grade === 'C') gradeDisplay.style.color = '#ff9800';
+        else gradeDisplay.style.color = 'var(--danger)';
+    }
+</script>
+
+</body>
+</html>

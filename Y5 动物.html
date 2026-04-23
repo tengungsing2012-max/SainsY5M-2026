@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科学生存大挑战 / Science Survival Quiz</title>
+    <style>
+        /* 高对比度与大字体设计，适合手机屏幕阅读 */
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #1E1E1E;
+            width: 100%;
+            max-width: 600px;
+            padding: 25px;
+            border-radius: 12px;
+            border: 3px solid #4CAF50;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        #timer-text {
+            color: #FF5252;
+            font-size: 1.5rem;
+        }
+        .question-box {
+            font-size: 1.4rem;
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            color: #E0E0E0;
+        }
+        .question-en {
+            font-size: 1.1rem;
+            color: #A0A0A0;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-btn {
+            background-color: #333333;
+            color: #FFFFFF;
+            border: 2px solid #555555;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #444444;
+            border-color: #4CAF50;
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+        .option-btn.correct {
+            background-color: #1B5E20;
+            border-color: #4CAF50;
+            color: #FFFFFF;
+        }
+        .option-btn.wrong {
+            background-color: #B71C1C;
+            border-color: #FF5252;
+            color: #FFFFFF;
+        }
+        .feedback-box {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            font-weight: bold;
+        }
+        .feedback-box.show {
+            display: block;
+        }
+        .feedback-box.correct-bg {
+            background-color: #004D40;
+            border-left: 5px solid #00BFA5;
+        }
+        .feedback-box.wrong-bg {
+            background-color: #4A148C;
+            border-left: 5px solid #EA80FC;
+        }
+        .explanation {
+            font-size: 1.1rem;
+            font-weight: normal;
+            margin-top: 10px;
+            color: #FFF;
+        }
+        .next-btn, .start-btn {
+            display: block;
+            width: 100%;
+            background-color: #4CAF50;
+            color: #000000;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .next-btn:hover, .start-btn:hover {
+            background-color: #45A049;
+        }
+        #result-screen, #game-screen {
+            display: none;
+        }
+        .grade-text {
+            font-size: 4rem;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .score-text {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .link-btn {
+            display: block;
+            width: 100%;
+            background-color: #2196F3;
+            color: #FFFFFF;
+            text-align: center;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen" class="container">
+        <h1>科学生存大挑战 <br><small>Science Survival Quiz</small></h1>
+        <p style="font-size: 1.2rem; line-height: 1.5; color:#ccc;">
+            欢迎！本次测试共有 25 道题，每题 4 分。<br>
+            你有 12 秒的时间回答每道题。<br><br>
+            Welcome! There are 25 questions, 4 points each.<br>
+            You have 12 seconds per question.
+        </p>
+        <button class="start-btn" onclick="startGame()">开始测试 / Start Quiz</button>
+    </div>
+
+    <div id="game-screen" class="container">
+        <div class="header-info">
+            <span id="question-counter">题/Q: 1/25</span>
+            <span id="timer-text">⏱ 12s</span>
+        </div>
+        
+        <div class="question-box">
+            <div id="q-text-zh">问题中文</div>
+            <div id="q-text-en" class="question-en">Question English</div>
+        </div>
+
+        <div class="options-container" id="options-container">
+            </div>
+
+        <div id="feedback-container" class="feedback-box">
+            <div id="feedback-title"></div>
+            <div id="explanation-text" class="explanation"></div>
+        </div>
+
+        <button id="next-btn" class="next-btn" style="display:none;" onclick="nextQuestion()">下一题 / Next</button>
+    </div>
+
+    <div id="result-screen" class="container">
+        <h1>测验完成！ / Quiz Completed!</h1>
+        <div class="score-text">总分 / Total Score: <br> <span id="final-score" style="color:#4CAF50; font-size:3rem;">100</span></div>
+        <div style="text-align: center; font-size: 1.2rem; color: #ccc;">评级 / Grade</div>
+        <div id="grade-display" class="grade-text">A</div>
+        
+        <p id="motivational-message" style="text-align:center; font-size:1.2rem; margin-top:20px;"></p>
+
+        <a href="https://forms.gle/rdGoXptMGVkA1th88" target="_blank" class="link-btn">
+            📝 提交你的成绩 / Submit Your Score
+        </a>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                qZh: "豪猪受到威胁时，利用身体的什么部位来保护自己？",
+                qEn: "What body part does a porcupine use to protect itself when threatened?",
+                options: [
+                    { zh: "坚硬的鳞片", en: "Hard scales", correct: false },
+                    { zh: "身上的尖刺", en: "Spikes on its body", correct: true },
+                    { zh: "锋利的爪子", en: "Sharp claws", correct: false }
+                ],
+                expZh: "豪猪身上的尖刺能保护它们，让天敌难以靠近。",
+                expEn: "Porcupines have spikes that protect them and make it hard for predators to get close."
+            },
+            {
+                qZh: "遇到危险时，乌龟会怎么保护自己？",
+                qEn: "How does a turtle protect itself when in danger?",
+                options: [
+                    { zh: "缩进坚硬的壳里", en: "Retract into its hard shell", correct: true },
+                    { zh: "喷出难闻的臭液", en: "Spray a foul liquid", correct: false },
+                    { zh: "快速奔跑", en: "Run quickly", correct: false }
+                ],
+                expZh: "乌龟有坚硬的外壳，遇到危险时能缩进壳里躲避天敌。",
+                expEn: "Turtles have a hard shell and retract into it to hide from predators."
+            },
+            {
+                qZh: "穿山甲遇到危险时，除了有鳞片保护，还会做什么？",
+                qEn: "Besides scales, what does a pangolin do when in danger?",
+                options: [
+                    { zh: "发出巨大的声音", en: "Make a loud noise", correct: false },
+                    { zh: "断开尾巴", en: "Detach its tail", correct: false },
+                    { zh: "蜷曲身体", en: "Curl up its body", correct: true }
+                ],
+                expZh: "遇到危险时，穿山甲会蜷曲身体，以保护自己不被天敌伤害。",
+                expEn: "When in danger, a pangolin curls up its body to protect itself from predators."
+            },
+            {
+                qZh: "臭鼬如何吓退天敌？",
+                qEn: "How does a skunk deter predators?",
+                options: [
+                    { zh: "伪装成周围的环境", en: "Camouflage into surroundings", correct: false },
+                    { zh: "喷出难闻的臭液", en: "Spray a foul-smelling liquid", correct: true },
+                    { zh: "让体形膨胀", en: "Inflate its body", correct: false }
+                ],
+                expZh: "臭鼬会向天敌喷出难闻的臭液，使天敌感到不适甚至短暂失明。",
+                expEn: "Skunks spray a foul liquid that causes discomfort or temporary blindness to predators."
+            },
+            {
+                qZh: "遇到天敌时，乌贼（章鱼）会怎么做来掩护自己逃跑？",
+                qEn: "What does a squid do to cover its escape from predators?",
+                options: [
+                    { zh: "装死", en: "Play dead", correct: false },
+                    { zh: "喷出黑墨", en: "Spray black ink", correct: true },
+                    { zh: "用毒刺攻击", en: "Attack with a stinger", correct: false }
+                ],
+                expZh: "乌贼在遇到天敌时会喷出黑墨，以掩护自己逃跑。",
+                expEn: "A squid sprays black ink to cover itself while escaping from predators."
+            },
+            {
+                qZh: "壁虎受到攻击时使用的自卫绝招是什么？",
+                qEn: "What defense mechanism does a gecko use when attacked?",
+                options: [
+                    { zh: "自断身体部位（尾巴）", en: "Detach body parts (tail)", correct: true },
+                    { zh: "改变身体颜色", en: "Change body color", correct: false },
+                    { zh: "释放毒液", en: "Release venom", correct: false }
+                ],
+                expZh: "壁虎会自断尾巴引开敌人的注意力，借机逃跑。尾巴之后会重新长出。",
+                expEn: "A gecko detaches its tail to distract the predator and escapes."
+            },
+            {
+                qZh: "刺河豚除了有毒，还会用什么方法吓退敌人？",
+                qEn: "Besides being poisonous, how else does a pufferfish scare off enemies?",
+                options: [
+                    { zh: "长出假眼睛", en: "Grow fake eyes", correct: false },
+                    { zh: "把身体膨胀成一个刺球", en: "Inflate into a spiky ball", correct: true },
+                    { zh: "快速挖土钻进洞里", en: "Dig quickly into the ground", correct: false }
+                ],
+                expZh: "受到威胁时，刺河豚会把身体膨胀成一个刺球，以吓退天敌。",
+                expEn: "When threatened, a pufferfish inflates its body into a spiky ball."
+            },
+            {
+                qZh: "生活在北极的动物（如北极熊）通常有什么外形特征来保暖？",
+                qEn: "What physical characteristic do Arctic animals (like polar bears) usually have to keep warm?",
+                options: [
+                    { zh: "长长的腿", en: "Long legs", correct: false },
+                    { zh: "大耳朵", en: "Large ears", correct: false },
+                    { zh: "厚毛", en: "Thick fur", correct: true }
+                ],
+                expZh: "北极熊的身上覆盖着厚毛，能锁住热气，减少身体的热量散失。",
+                expEn: "Polar bears are covered in thick fur that traps heat and reduces heat loss."
+            },
+            {
+                qZh: "骆驼在沙漠中水和食物短缺时，如何获取能量？",
+                qEn: "How does a camel get energy in the desert when food and water are scarce?",
+                options: [
+                    { zh: "通过冬眠节省能量", en: "Hibernate to save energy", correct: false },
+                    { zh: "依靠驼峰里贮存的脂肪", en: "Rely on fat stored in its hump", correct: true },
+                    { zh: "吸收太阳的能量", en: "Absorb energy from the sun", correct: false }
+                ],
+                expZh: "骆驼把脂肪贮存在驼峰里，能在缺乏食物和水时提供能量。",
+                expEn: "Camels store fat in their humps to provide energy when resources are low."
+            },
+            {
+                qZh: "在寒冷的冬季来临前，鹭和鲸会怎么做？",
+                qEn: "Before cold winters arrive, what do egrets and whales do?",
+                options: [
+                    { zh: "脱落毛发", en: "Shed their fur/feathers", correct: false },
+                    { zh: "冬眠几个月", en: "Hibernate for months", correct: false },
+                    { zh: "迁徙到较温暖的地区", en: "Migrate to warmer areas", correct: true }
+                ],
+                expZh: "有些动物如鹭和鲸会从寒冷地区迁徙到较温暖的地区去避寒和寻找食物。",
+                expEn: "Animals like egrets and whales migrate to warmer regions to escape cold and find food."
+            },
+            {
+                qZh: "生活在沙漠的耳廓狐有一对大耳朵，它的主要作用是什么？",
+                qEn: "Fennec foxes in the desert have large ears. What is their main purpose?",
+                options: [
+                    { zh: "用来散热", en: "To lose heat", correct: true },
+                    { zh: "用来飞翔", en: "To fly", correct: false },
+                    { zh: "用来储存水分", en: "To store water", correct: false }
+                ],
+                expZh: "耳廓狐利用大耳朵散热，以适应炎热的气候。",
+                expEn: "Fennec foxes use their large ears to dissipate heat and adapt to the hot climate."
+            },
+            {
+                qZh: "水牛和犀牛经常在泥泞里打滚，这是为了什么？",
+                qEn: "Why do buffaloes and rhinos often wallow in mud?",
+                options: [
+                    { zh: "为了吸引同伴", en: "To attract mates", correct: false },
+                    { zh: "为了散热降温保持凉爽", en: "To cool down and stay fresh", correct: true },
+                    { zh: "为了改变身体的颜色", en: "To change body color", correct: false }
+                ],
+                expZh: "在泥泞里打滚可以帮助它们散热降温，使身体保持凉爽。",
+                expEn: "Wallowing in mud helps them dissipate heat and keep their bodies cool."
+            },
+            {
+                qZh: "为了保护卵不被天敌吃掉，海龟和鳄鱼会把卵产在哪里？",
+                qEn: "Where do turtles and crocodiles lay their eggs to protect them from predators?",
+                options: [
+                    { zh: "高高的树枝上", en: "High on tree branches", correct: false },
+                    { zh: "隐蔽的地方（如沙坑或泥土里）", en: "Hidden places (like sand pits)", correct: true },
+                    { zh: "显眼的石头上", en: "On conspicuous rocks", correct: false }
+                ],
+                expZh: "它们会把卵产在隐蔽的地方把卵藏起来，不容易被天敌发现。",
+                expEn: "They lay eggs in hidden places so they are not easily found by predators."
+            },
+            {
+                qZh: "青蛙的卵有什么特征让天敌难以吞食？",
+                qEn: "What feature of frog eggs makes them hard for predators to eat?",
+                options: [
+                    { zh: "包裹着黏液且连成团块", en: "Wrapped in jelly and clumped together", correct: true },
+                    { zh: "有坚硬的壳", en: "Have a hard shell", correct: false },
+                    { zh: "长满了尖刺", en: "Covered in spikes", correct: false }
+                ],
+                expZh: "青蛙的卵包裹着黏液，彼此相连成团块，且会发出臭味防止被吃。",
+                expEn: "Frog eggs are wrapped in mucus, clumped together, and may smell bad."
+            },
+            {
+                qZh: "刚出生的袋鼠幼儿会待在哪里直到长大？",
+                qEn: "Where do newborn kangaroos stay until they grow up?",
+                options: [
+                    { zh: "水里", en: "In the water", correct: false },
+                    { zh: "雌袋鼠的育儿袋里", en: "In the mother's pouch", correct: true },
+                    { zh: "深深的地洞里", en: "In a deep burrow", correct: false }
+                ],
+                expZh: "袋鼠幼儿一出生就在雌袋鼠的育儿袋里吸取乳汁，直到长大。",
+                expEn: "Newborn kangaroos stay in the mother's pouch nursing until they are grown."
+            },
+            {
+                qZh: "鳄鱼和罗非鱼如何确保刚出生的幼儿安全移动到水中？",
+                qEn: "How do crocodiles and tilapia fish ensure their newborns move safely into the water?",
+                options: [
+                    { zh: "背在背上", en: "Carry them on their backs", correct: false },
+                    { zh: "含在嘴里", en: "Hold them in their mouths", correct: true },
+                    { zh: "用翅膀保护", en: "Protect them with wings", correct: false }
+                ],
+                expZh: "母鳄鱼和罗非鱼会把幼儿含在嘴里，安全地送到水中。",
+                expEn: "Mother crocodiles and tilapia hold their young in their mouths to move them safely."
+            },
+            {
+                qZh: "哺乳动物（如猫、斑马）是用什么来喂养它们的幼儿的？",
+                qEn: "What do mammals (like cats and zebras) use to feed their young?",
+                options: [
+                    { zh: "捕捉的小虫", en: "Caught insects", correct: false },
+                    { zh: "绿色的植物", en: "Green plants", correct: false },
+                    { zh: "乳汁 (哺乳)", en: "Milk (nursing)", correct: true }
+                ],
+                expZh: "哺乳动物用乳汁来哺育幼儿，直到幼儿有能力寻找食物。",
+                expEn: "Mammals nurse their young with milk until they can find food themselves."
+            },
+            {
+                qZh: "在栖息地里，生物之间“吃与被吃”的关系叫作什么？",
+                qEn: "In a habitat, what is the 'eat and be eaten' relationship between living things called?",
+                options: [
+                    { zh: "食物网", en: "Food web", correct: false },
+                    { zh: "食物链", en: "Food chain", correct: true },
+                    { zh: "生态平衡", en: "Ecological balance", correct: false }
+                ],
+                expZh: "任何生物都需要从食物中获取能量，这种吃与被吃的线性联系叫作食物链。",
+                expEn: "The linear sequence of organisms eating one another for energy is a food chain."
+            },
+            {
+                qZh: "在食物链中，绿色植物自己制造食物，被称为：",
+                qEn: "In a food chain, green plants make their own food and are known as:",
+                options: [
+                    { zh: "生产者", en: "Producers", correct: true },
+                    { zh: "初级消费者", en: "Primary consumers", correct: false },
+                    { zh: "次级消费者", en: "Secondary consumers", correct: false }
+                ],
+                expZh: "绿色植物通过光合作用制造食物，是食物链中的生产者。",
+                expEn: "Plants make food via photosynthesis and are called producers."
+            },
+            {
+                qZh: "在食物链中，动物不能自己制造食物，必须以其他生物为食，被称为：",
+                qEn: "Animals cannot make their own food and must eat other organisms. They are called:",
+                options: [
+                    { zh: "分解者", en: "Decomposers", correct: false },
+                    { zh: "生产者", en: "Producers", correct: false },
+                    { zh: "消费者", en: "Consumers", correct: true }
+                ],
+                expZh: "动物不能自己制造食物，只能以植物或其他动物为食，被称为消费者。",
+                expEn: "Animals eat plants or other animals and are therefore called consumers."
+            },
+            {
+                qZh: "在食物链“稻 → 老鼠 → 蛇”中，箭头 (→) 代表什么意思？",
+                qEn: "In the food chain 'Rice → Rat → Snake', what does the arrow (→) represent?",
+                options: [
+                    { zh: "被吃掉 / 能量传递的方向", en: "Eaten by / Direction of energy flow", correct: true },
+                    { zh: "逃跑的方向", en: "Direction of escape", correct: false },
+                    { zh: "吃掉", en: "Eats", correct: false }
+                ],
+                expZh: "箭头表示“被吃掉”，同时也代表能量从一个生物传递给下一个生物的方向。",
+                expEn: "The arrow means 'eaten by' and shows the flow of energy."
+            },
+            {
+                qZh: "食物链中所有生物的能量最初都来自哪里？",
+                qEn: "Where does the initial energy for all living things in a food chain come from?",
+                options: [
+                    { zh: "太阳", en: "The Sun", correct: true },
+                    { zh: "泥土", en: "The soil", correct: false },
+                    { zh: "空气", en: "The air", correct: false }
+                ],
+                expZh: "太阳在食物链中是主要的能源，绿色植物吸收阳光进行光合作用。",
+                expEn: "The sun is the main source of energy; plants absorb sunlight for photosynthesis."
+            },
+            {
+                qZh: "一个栖息地里由多条食物链互相连接形成的网状结构叫作：",
+                qEn: "A network formed by multiple interconnected food chains in a habitat is called a:",
+                options: [
+                    { zh: "生态系统", en: "Ecosystem", correct: false },
+                    { zh: "食物网", en: "Food web", correct: true },
+                    { zh: "生物圈", en: "Biosphere", correct: false }
+                ],
+                expZh: "同一种生物会出现在多条食物链里，把这些食物链连接在一起，就会形成食物网。",
+                expEn: "When interconnected food chains are combined, they form a food web."
+            },
+            {
+                qZh: "如果食物网中某种动物（如麻雀）突然消失，会发生什么事？",
+                qEn: "What happens if an animal (like a sparrow) suddenly disappears from a food web?",
+                options: [
+                    { zh: "其他生物不会有任何影响", en: "No other organisms are affected", correct: false },
+                    { zh: "生态会变得更好", en: "The ecosystem becomes better", correct: false },
+                    { zh: "其他生物的数量都会受到影响", en: "The populations of other organisms are affected", correct: true }
+                ],
+                expZh: "任何一种生物的数量发生巨变，都会使食物网中其他生物的数量受到影响。",
+                expEn: "A dramatic change in one population will affect the populations of other members."
+            },
+            {
+                qZh: "动物利用外形特征自卫和适应气候，这说明了什么能力？",
+                qEn: "Animals use physical traits for defense and climate adaptation. What ability does this show?",
+                options: [
+                    { zh: "物种生存的能力", en: "Species survival ability", correct: true },
+                    { zh: "交流的能力", en: "Communication ability", correct: false },
+                    { zh: "光合作用的能力", en: "Photosynthetic ability", correct: false }
+                ],
+                expZh: "为了避免绝种，动物都有让它们的物种继续生存的本能和绝招。",
+                expEn: "To avoid extinction, animals have instincts and traits to ensure species survival."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 12;
+        let timerInterval;
+        let hasAnswered = false;
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            loadQuestion();
+        }
+
+        function startTimer() {
+            timeLeft = 12;
+            document.getElementById('timer-text').innerText = `⏱ ${timeLeft}s`;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer-text').innerText = `⏱ ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            hasAnswered = false;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('feedback-container').className = 'feedback-box';
+            
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-counter').innerText = `题/Q: ${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('q-text-zh').innerText = q.qZh;
+            document.getElementById('q-text-en').innerText = q.qEn;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // Shuffle options
+            let options = [...q.options];
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `${opt.zh} <br><small style="color:#bbb;">${opt.en}</small>`;
+                btn.onclick = () => selectOption(btn, opt.correct, options);
+                optionsContainer.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function selectOption(selectedBtn, isCorrect, optionsData) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+            clearInterval(timerInterval);
+
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                score += 4;
+                showFeedback(true);
+            } else {
+                selectedBtn.classList.add('wrong');
+                // Highlight the correct one
+                buttons.forEach((btn, index) => {
+                    // find which button corresponds to the correct option
+                    if (btn.innerHTML.includes(optionsData.find(o => o.correct).zh)) {
+                        btn.classList.add('correct');
+                    }
+                });
+                showFeedback(false);
+            }
+        }
+
+        function handleTimeout() {
+            if (hasAnswered) return;
+            hasAnswered = true;
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // highlight correct
+            const q = questions[currentQuestionIndex];
+            buttons.forEach((btn) => {
+                if (btn.innerHTML.includes(q.options.find(o => o.correct).zh)) {
+                    btn.classList.add('correct');
+                }
+            });
+            showFeedback(false, true);
+        }
+
+        function showFeedback(isCorrect, isTimeout = false) {
+            const fbBox = document.getElementById('feedback-container');
+            const fbTitle = document.getElementById('feedback-title');
+            const expText = document.getElementById('explanation-text');
+            const q = questions[currentQuestionIndex];
+
+            fbBox.classList.add('show');
+            if (isCorrect) {
+                fbBox.classList.add('correct-bg');
+                fbTitle.innerHTML = '✅ 回答正确！ Correct!';
+            } else {
+                fbBox.classList.add('wrong-bg');
+                fbTitle.innerHTML = isTimeout ? '⏰ 时间到！ Time is up!' : '❌ 回答错误！ Incorrect!';
+            }
+            expText.innerHTML = `${q.expZh} <br> <span style="color:#ccc; font-size: 0.95em;">${q.expEn}</span>`;
+            
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            document.getElementById('final-score').innerText = score;
+            
+            let grade = 'E';
+            let color = '#FF5252';
+            let msg = "持续加油，永不放弃！ Keep going, never give up!";
+            
+            if (score > 84) { grade = 'A'; color = '#4CAF50'; msg = "太棒了！老师为你感到骄傲！ Excellent work!"; }
+            else if (score > 68) { grade = 'B'; color = '#8BC34A'; msg = "做得很棒！继续保持！ Great job!"; }
+            else if (score > 52) { grade = 'C'; color = '#FFEB3B'; msg = "不错哦！再努力一点点！ Good effort!"; }
+            else if (score > 36) { grade = 'D'; color = '#FF9800'; msg = "及格了，下次一定能更好！ You passed, keep practicing!"; }
+
+            const gradeElement = document.getElementById('grade-display');
+            gradeElement.innerText = grade;
+            gradeElement.style.color = color;
+            document.getElementById('motivational-message').innerText = msg;
+        }
+    </script>
+</body>
+</html>
